@@ -1,0 +1,10 @@
+import { useState } from 'react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+const catalogos=[['estudiantes','Estudiantes'],['equivalencias','Equivalencias de cursos'],['cursos','Cursos'],['pensum','Pensums']]
+const admin=[['autoridades','Autoridades'],['carreras','Carreras'],['instituciones','Instituciones'],['sedes','Sedes'],['profesiones','Profesiones']]
+export default function EquiparacionLayout(){
+  const {user,logout}=useAuth();const navigate=useNavigate();const [open,setOpen]=useState(false)
+  const end=async()=>{await logout();navigate('/login',{replace:true})}
+  return <div className="eq-shell"><aside className={`eq-sidebar ${open?'is-open':''}`}><NavLink to="/dashboard/equiparacion" className="eq-brand"><span className="eq-brand-mark">E</span><div><b>Equiparacion</b><small>CUNOC / INGENIERIA</small></div></NavLink><div className="eq-nav-caption">ESPACIO DE TRABAJO</div><NavLink to="/dashboard/equiparacion" onClick={()=>setOpen(false)} className={({isActive})=>`eq-nav-link ${isActive?'active':''}`}><span className="eq-nav-symbol">≡</span>Equiparacion</NavLink><div className="eq-nav-caption">CATALOGOS</div>{[...catalogos,...(user?.rol==='admin'?admin:[])].map(([url,label])=><NavLink key={url} to={'/dashboard/'+url} onClick={()=>setOpen(false)} className={({isActive})=>`eq-nav-link ${isActive?'active':''}`}>{label}</NavLink>)}<div className="eq-sidebar-bottom"><span className="eq-dot"/> Registro academico</div></aside><div className="eq-workspace"><header className="eq-topbar"><button className="eq-btn eq-menu" onClick={()=>setOpen(!open)}>Menu</button><span>Centro Universitario de Occidente</span><div className="eq-user"><span className="eq-avatar">{user?.nombre?.slice(0,1)}</span><div><b>{user?.nombre}</b><small>{user?.rol}</small></div><button className="eq-btn" onClick={end}>Salir</button></div></header><main className="eq-main"><Outlet/></main><footer className="eq-footer">Sistema de Equiparacion · Ciencias de la Ingenieria <span>{new Date().getFullYear()} · CUNOC</span></footer></div></div>
+}

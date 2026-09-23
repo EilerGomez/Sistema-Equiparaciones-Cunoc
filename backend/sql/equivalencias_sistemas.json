@@ -1,0 +1,470 @@
+[
+  {
+    "numero": 1,
+    "codigo_de": "28",
+    "nombre_de": "Social Humanística 1",
+    "codigo_a": "3003",
+    "nombre_a": "Área Social Humanística 1",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 2,
+    "codigo_de": "29",
+    "nombre_de": "Social Humanística 2",
+    "codigo_a": "3011",
+    "nombre_a": "Área Social Humanística 2",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 3,
+    "codigo_de": "72",
+    "nombre_de": "Física Básica",
+    "codigo_a": "3007",
+    "nombre_a": "Física Básica",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 4,
+    "codigo_de": "146",
+    "nombre_de": "Física 1",
+    "codigo_a": "3014",
+    "nombre_a": "Física 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 5,
+    "codigo_de": "169",
+    "nombre_de": "Matemática Básica 1",
+    "codigo_a": "3000",
+    "nombre_a": "Área Matemática Básica 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 6,
+    "codigo_de": "170",
+    "nombre_de": "Matemática Básica 2",
+    "codigo_a": "3006",
+    "nombre_a": "Área Matemática Básica 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 7,
+    "codigo_de": "2667",
+    "nombre_de": "Técnicas de Investigación y Estudio",
+    "codigo_a": "3005",
+    "nombre_a": "Técnicas de Estudio e Investigación",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 8,
+    "codigo_de": "290",
+    "nombre_de": "Matemática Intermedia 1",
+    "codigo_a": "3013",
+    "nombre_a": "Área Matemática Intermedia 1",
+    "porcentaje": 95.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 9,
+    "codigo_de": "291",
+    "nombre_de": "Matemática Intermedia 2",
+    "codigo_a": "3021",
+    "nombre_a": "Área Matemática Intermedia 2",
+    "porcentaje": 95.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 10,
+    "codigo_de": "292",
+    "nombre_de": "Matemática Intermedia 3",
+    "codigo_a": "3022",
+    "nombre_a": "Área Matemática Intermedia 3",
+    "porcentaje": 95.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 11,
+    "codigo_de": "674",
+    "nombre_de": "Matemática Aplicada 3",
+    "codigo_a": "3027",
+    "nombre_a": "Matemática Aplicada 3",
+    "porcentaje": 95.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 12,
+    "codigo_de": "673",
+    "nombre_de": "Matemática Aplicada 1",
+    "codigo_a": "3028",
+    "nombre_a": "Matemática Aplicada 1",
+    "porcentaje": 95.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 13,
+    "codigo_de": "147",
+    "nombre_de": "Física 2",
+    "codigo_a": "3023",
+    "nombre_a": "Física 2",
+    "porcentaje": 97.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 14,
+    "codigo_de": "177",
+    "nombre_de": "Deportes 1",
+    "codigo_a": "3082",
+    "nombre_a": "Deportes 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 15,
+    "codigo_de": "178",
+    "nombre_de": "Deportes 2",
+    "codigo_a": "3086",
+    "nombre_a": "Deportes 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 16,
+    "codigo_de": "2795",
+    "nombre_de": "Matemática de Cómputo 1",
+    "codigo_a": "3231",
+    "nombre_a": "Matemática para Computación 1",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 17,
+    "codigo_de": "2796",
+    "nombre_de": "Introducción a la Programación y Computación 1",
+    "codigo_a": "3234",
+    "nombre_a": "Introducción a la Programación y Computación 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 18,
+    "codigo_de": "2797",
+    "nombre_de": "Lógica de Sistemas",
+    "codigo_a": "3232",
+    "nombre_a": "Lógica de Sistemas",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 19,
+    "codigo_de": "949",
+    "nombre_de": "Estadística 1",
+    "codigo_a": "3090",
+    "nombre_a": "Estadística 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 20,
+    "codigo_de": "2799",
+    "nombre_de": "Matemática de Cómputo 2",
+    "codigo_a": "3233",
+    "nombre_a": "Matemática para Computación 2",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 21,
+    "codigo_de": "2800",
+    "nombre_de": "Introducción a la Programación y Computación 2",
+    "codigo_a": "3236",
+    "nombre_a": "Introducción a la Programación y Computación 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 22,
+    "codigo_de": "2803",
+    "nombre_de": "Organización de Lenguajes y Compiladores 1",
+    "codigo_a": "3239",
+    "nombre_a": "Organización de Lenguajes y Compiladores 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 23,
+    "codigo_de": "2804",
+    "nombre_de": "Organización Computacional",
+    "codigo_a": "3240",
+    "nombre_a": "Organización Computacional",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 24,
+    "codigo_de": "2805",
+    "nombre_de": "Estructura de Datos",
+    "codigo_a": "3241",
+    "nombre_a": "Estructura de Datos",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 25,
+    "codigo_de": "2807",
+    "nombre_de": "Práctica Inicial TI",
+    "codigo_a": "3238",
+    "nombre_a": "Prácticas Iniciales",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 26,
+    "codigo_de": "685",
+    "nombre_de": "Investigación de Operaciones 1",
+    "codigo_a": "3243",
+    "nombre_a": "Investigación de Operaciones 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 27,
+    "codigo_de": "2809",
+    "nombre_de": "Economía",
+    "codigo_a": "3244",
+    "nombre_a": "Economía",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 28,
+    "codigo_de": "2810",
+    "nombre_de": "Organización de Lenguajes y Compiladores 2",
+    "codigo_a": "3245",
+    "nombre_a": "Organización de Lenguajes y Compiladores 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 29,
+    "codigo_de": "2811",
+    "nombre_de": "Arquitectura de Computadores y Ensambladores 1",
+    "codigo_a": "3246",
+    "nombre_a": "Arquitectura de Computadoras y Ensambladores 1",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 30,
+    "codigo_de": "2812",
+    "nombre_de": "Manejo e Implementación de Archivos",
+    "codigo_a": "3247",
+    "nombre_a": "Manejo e Implementación de Archivos",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 31,
+    "codigo_de": "795",
+    "nombre_de": "Investigación de Operaciones 2",
+    "codigo_a": "3249",
+    "nombre_a": "Investigación de Operaciones 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 32,
+    "codigo_de": "2813",
+    "nombre_de": "Teoría de Sistemas 2",
+    "codigo_a": "3248",
+    "nombre_a": "Teoría de Sistemas 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 33,
+    "codigo_de": "2814",
+    "nombre_de": "Sistemas Operativos 1",
+    "codigo_a": "3250",
+    "nombre_a": "Sistemas Operativos 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 34,
+    "codigo_de": "2816",
+    "nombre_de": "Redes de Computadoras 1",
+    "codigo_a": "3252",
+    "nombre_a": "Redes de Computadoras 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 35,
+    "codigo_de": "2817",
+    "nombre_de": "Sistemas de Bases de Datos 1",
+    "codigo_a": "3253",
+    "nombre_a": "Sistemas de Bases de Datos 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 36,
+    "codigo_de": "2818",
+    "nombre_de": "Práctica Intermedia TI",
+    "codigo_a": "3254",
+    "nombre_a": "Prácticas Intermedias",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 37,
+    "codigo_de": "2815",
+    "nombre_de": "Arquitectura de Computadores y Ensambladores 2",
+    "codigo_a": "3251",
+    "nombre_a": "Arquitectura de Computadoras y Ensambladores 2",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 38,
+    "codigo_de": "2821",
+    "nombre_de": "Sistemas de Bases de Datos 2",
+    "codigo_a": "3257",
+    "nombre_a": "Sistemas de Bases de Datos 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 39,
+    "codigo_de": "2819",
+    "nombre_de": "Sistemas Operativos 2",
+    "codigo_a": "3255",
+    "nombre_a": "Sistemas Operativos 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 40,
+    "codigo_de": "2820",
+    "nombre_de": "Redes de Computadoras 2",
+    "codigo_a": "3256",
+    "nombre_a": "Redes de Computadoras 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 41,
+    "codigo_de": "2822",
+    "nombre_de": "Análisis y Diseño de Sistemas 1",
+    "codigo_a": "3258",
+    "nombre_a": "Análisis y Diseño de Sistemas 1",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 42,
+    "codigo_de": "2823",
+    "nombre_de": "Seminario de Sistemas 1",
+    "codigo_a": "3259",
+    "nombre_a": "Seminario de Sistemas 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 43,
+    "codigo_de": "2824",
+    "nombre_de": "Modelación y Simulación 1",
+    "codigo_a": "3260",
+    "nombre_a": "Modelación y Simulación 1",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 44,
+    "codigo_de": "2825",
+    "nombre_de": "Sistemas Organizacionales y Gerenciales 1",
+    "codigo_a": "3261",
+    "nombre_a": "Sistemas Organizacionales y Gerenciales 1",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 45,
+    "codigo_de": "2826",
+    "nombre_de": "Inteligencia Artificial",
+    "codigo_a": "3262",
+    "nombre_a": "Inteligencia Artificial 1",
+    "porcentaje": 90.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 46,
+    "codigo_de": "2827",
+    "nombre_de": "Análisis y Diseño de Sistemas 2",
+    "codigo_a": "3264",
+    "nombre_a": "Análisis y Diseño de Sistemas 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 47,
+    "codigo_de": "2828",
+    "nombre_de": "Seminario de Sistemas 2",
+    "codigo_a": "3265",
+    "nombre_a": "Seminario de Sistemas 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 48,
+    "codigo_de": "2829",
+    "nombre_de": "Práctica Final",
+    "codigo_a": "3268",
+    "nombre_a": "Prácticas Finales Ingeniería en Ciencia y Sistemas",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 49,
+    "codigo_de": "2834",
+    "nombre_de": "Sistemas Organizacionales y Gerenciales 2",
+    "codigo_a": "3270",
+    "nombre_a": "Sistemas Organizacionales y Gerenciales 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 50,
+    "codigo_de": "2835",
+    "nombre_de": "Modelación y Simulación 2",
+    "codigo_a": "3269",
+    "nombre_a": "Modelación y Simulación 2",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 51,
+    "codigo_de": "2836",
+    "nombre_de": "Software Avanzado",
+    "codigo_a": "3274",
+    "nombre_a": "Software Avanzado",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  },
+  {
+    "numero": 52,
+    "codigo_de": "2837",
+    "nombre_de": "Seminario de Investigación",
+    "codigo_a": "3278",
+    "nombre_a": "Seminario de Investigación",
+    "porcentaje": 100.0,
+    "opinion": "EQUIVALENTE"
+  }
+]

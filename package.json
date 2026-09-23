@@ -1,0 +1,11 @@
+{
+  "name": "sistema-equiparacion",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "instalar": "npm ci --prefix backend && npm ci --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "npm start --prefix backend",
+    "test": "npm test --prefix backend"
+  }
+}
