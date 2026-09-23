@@ -35,6 +35,7 @@ app.use(rateLimit({
 // ─── Archivos estáticos ───────────────────────────────────
 // Sirve imagenes de firmas, sellos y archivos subidos.
 app.use('/uploads', express.static(UPLOAD_ROOT))
+app.use('/fonts', express.static(path.join(__dirname, '../assets/fonts')))
 
 // ─── Parsers ──────────────────────────────────────────────
 app.use(express.json({ limit: '5mb' }))

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api from '../../api/client'
+import EquiparacionPrint from './EquiparacionPrint'
 
 const pair=course=>`${course.id_curso_de}:${course.id_curso_a}`
 const normalized=value=>String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()
@@ -22,6 +23,7 @@ export default function EquiparacionDetallePage(){
   const [courseError,setCourseError]=useState('')
   const [revision,setRevision]=useState(0)
   const [preview,setPreview]=useState(null)
+  const [printData,setPrintData]=useState(null)
   const [pdfBusy,setPdfBusy]=useState(false)
   const previewUrl=useRef(null)
   useEffect(()=>()=>{if(previewUrl.current)URL.revokeObjectURL(previewUrl.current)},[])
@@ -60,24 +62,23 @@ export default function EquiparacionDetallePage(){
     setPreview(null)
     if(previewUrl.current){URL.revokeObjectURL(previewUrl.current);previewUrl.current=null}
   }
-  async function pdf(download=false){
+  async function preparePrint(){
+    if(!detail?.cursos?.length){toast.error('Agrega cursos antes de imprimir');return}
     setPdfBusy(true)
     try{
-      const {data}=await api.get(`/equiparaciones/${id}/pdf`,{params:{download:download?'1':'0'},responseType:'blob',timeout:60000})
+      const {data}=await api.post(`/equiparaciones/${id}/impresion`)
+      setDetail(data)
+      setPrintData(data)
+    }catch(e){toast.error(errorMessage(e))}finally{setPdfBusy(false)}
+  }
+  async function pdf(){
+    setPdfBusy(true)
+    try{
+      const {data}=await api.get(`/equiparaciones/${id}/pdf`,{params:{download:'0'},responseType:'blob',timeout:60000})
       const url=URL.createObjectURL(data)
-      if(download){
-        const link=document.createElement('a')
-        link.href=url
-        link.download=`equiparacion-${detail.codigo}.pdf`
-        document.body.append(link)
-        link.click()
-        link.remove()
-        setTimeout(()=>URL.revokeObjectURL(url),10000)
-      }else{
-        closePreview()
-        previewUrl.current=url
-        setPreview(url)
-      }
+      closePreview()
+      previewUrl.current=url
+      setPreview({url})
     }catch(e){
       let message=errorMessage(e)
       if(e.response?.data instanceof Blob){try{message=JSON.parse(await e.response.data.text()).message}catch{}}
@@ -87,12 +88,13 @@ export default function EquiparacionDetallePage(){
   if(loading)return <div className="eq-page"><p>Cargando equiparacion...</p></div>
   if(error||!detail)return <div className="eq-page"><Link className="eq-btn" to="/dashboard/equiparacion">Volver</Link><p className="eq-error">{error || 'Documento no encontrado'}</p><button className="eq-btn" onClick={()=>setRevision(x=>x+1)}>Reintentar</button></div>
   return <div className="eq-page eq-detail-page">
-    <div className="eq-heading"><div><Link className="eq-back" to="/dashboard/equiparacion">← Volver al listado</Link><span className="eq-eyebrow">DOCUMENTO / {detail.codigo}</span><h1>Equiparacion {detail.codigo}</h1><p>{detail.estudiante_nombre} · Carnet {detail.estudiante_carnet} · Registro {detail.registro_academico}</p></div><div className="eq-detail-header-actions"><span className={`eq-badge ${String(detail.estado).toLowerCase()}`}>{detail.estado}</span><div className="eq-actions"><button className="eq-btn" onClick={()=>navigate(`/dashboard/equiparacion?editar=${id}`)} disabled={editing||saving}>Editar</button><button className="eq-btn" onClick={()=>pdf()} disabled={!detail.cursos.length||pdfBusy||editing}>{pdfBusy?'Cargando...':'Visualizar'}</button><button className="eq-btn primary" onClick={()=>pdf(true)} disabled={!detail.cursos.length||pdfBusy||editing}>PDF</button></div></div></div>
+    <div className="eq-heading"><div><Link className="eq-back" to="/dashboard/equiparacion">← Volver al listado</Link><span className="eq-eyebrow">DOCUMENTO / {detail.codigo}</span><h1>Equiparacion {detail.codigo}</h1><p>{detail.estudiante_nombre} · Carnet {detail.estudiante_carnet} · Registro {detail.registro_academico}</p></div><div className="eq-detail-header-actions"><span className={`eq-badge ${String(detail.estado).toLowerCase()}`}>{detail.estado}</span><div className="eq-actions"><button className="eq-btn" onClick={()=>navigate(`/dashboard/equiparacion?editar=${id}`)} disabled={editing||saving}>Editar</button><button className="eq-btn" onClick={()=>pdf()} disabled={!detail.cursos.length||pdfBusy||editing}>{pdfBusy?'Cargando...':'Visualizar'}</button><button className="eq-btn primary" onClick={preparePrint} disabled={!detail.cursos.length||pdfBusy||editing}>PDF</button></div></div></div>
     <section className="eq-card eq-detail-summary"><div><small>Pensum de origen</small><strong>{detail.pensum_de_anio} · {detail.carrera_de}</strong></div><div><small>Pensum de destino</small><strong>{detail.pensum_a_anio} · {detail.carrera_a}</strong></div><div><small>Cursos seleccionados</small><strong>{detail.cursos.length}</strong></div></section>
     <section className="eq-card eq-detail-courses"><div className="eq-detail-toolbar"><div><span className="eq-eyebrow">CURSOS DEL DOCUMENTO</span><h2>{editing?'Cambiar cursos':'Listado de cursos'}</h2></div><div className="eq-actions">{editing?<><button className="eq-btn" onClick={()=>{setEditing(false);setCourses(detail.cursos.map(c=>({id_curso_de:c.id_curso_de,id_curso_a:c.id_curso_a})))}} disabled={saving}>Cancelar</button><button className="eq-btn primary" onClick={saveCourses} disabled={saving||!courses.length}>{saving?'Guardando...':'Guardar cursos'}</button></>:<button className="eq-btn primary" onClick={openCourseEditor} disabled={loadingCourses}>{loadingCourses?'Cargando cursos...':'Cambiar cursos'}</button>}</div></div>
       {courseError&&<p className="eq-error" role="alert">{courseError}</p>}
       {editing?<><div className="eq-selection-bar"><input aria-label="Buscar cursos" placeholder="Buscar codigo o nombre, con o sin tilde" value={query} onChange={e=>setQuery(e.target.value)}/><strong>{courses.length} seleccionados</strong><button className="eq-btn" onClick={()=>setCourses(available.map(c=>({id_curso_de:c.id_curso_de,id_curso_a:c.id_curso_a})))}>Seleccionar todos</button><button className="eq-btn" onClick={()=>setCourses([])}>Limpiar</button></div><div className="eq-course-list"><table className="eq-table"><thead><tr><th>Incluir</th><th>Curso de origen</th><th>Curso de destino</th><th>%</th><th>Opinion</th></tr></thead><tbody>{filtered.map(course=><tr key={pair(course)} className={selected.has(pair(course))?'eq-selected':''}><td><input type="checkbox" aria-label={`Seleccionar ${course.curso_de_codigo}`} checked={selected.has(pair(course))} onChange={()=>toggle(course)}/></td><td><small>{course.curso_de_codigo}</small>{course.curso_de_nombre}</td><td><small>{course.curso_a_codigo}</small>{course.curso_a_nombre}</td><td>{Number(course.porcentaje)}</td><td>{course.opinion}</td></tr>)}{!filtered.length&&<tr><td colSpan="5" className="eq-empty">No hay equivalencias para estos pensums o esta busqueda.</td></tr>}</tbody></table></div></>:<div className="eq-table-scroll"><table className="eq-table"><thead><tr><th>No.</th><th>Curso de origen</th><th>Curso de destino</th><th>Porcentaje</th><th>Opinion</th></tr></thead><tbody>{detail.cursos.map(course=><tr key={course.numero}><td>{course.numero}</td><td><small>{course.curso_de_codigo}</small>{course.curso_de_nombre}</td><td><small>{course.curso_a_codigo}</small>{course.curso_a_nombre}</td><td>{Number(course.porcentaje)}%</td><td>{course.opinion}</td></tr>)}{!detail.cursos.length&&<tr><td colSpan="5" className="eq-empty">Esta equiparacion todavia no tiene cursos. Usa Cambiar cursos para agregarlos.</td></tr>}</tbody></table></div>}
     </section>
-    {preview&&<div className="eq-overlay"><section className="eq-dialog eq-preview" role="dialog" aria-modal="true" aria-label="Vista previa de equiparacion"><div className="eq-dialog-heading"><h2>Equiparacion {detail.codigo}</h2><div className="eq-actions"><button className="eq-btn primary" onClick={()=>pdf(true)} disabled={pdfBusy}>Descargar PDF</button><button className="eq-btn" onClick={closePreview}>Cerrar</button></div></div><iframe title={`Documento ${detail.codigo}`} src={preview}/></section></div>}
+    {preview&&<div className="eq-overlay"><section className="eq-dialog eq-preview" role="dialog" aria-modal="true" aria-label="Vista previa de equiparacion"><div className="eq-dialog-heading"><h2>Equiparacion {detail.codigo}</h2><div className="eq-actions"><button className="eq-btn primary" onClick={preparePrint}>Imprimir / Guardar PDF</button><button className="eq-btn" onClick={closePreview}>Cerrar</button></div></div><p className="eq-print-hint">El botón PDF prepara la impresión desde la página.</p><iframe title={`Documento ${detail.codigo}`} src={preview.url}/></section></div>}
+    {printData&&<EquiparacionPrint documento={printData} onClose={()=>setPrintData(null)}/>}
   </div>
 }

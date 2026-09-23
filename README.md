@@ -1,6 +1,6 @@
 # Sistema de Equiparacion - primera etapa
 
-Aplicacion basada en el backend Express y frontend React originales. Esta etapa permite crear manualmente equiparaciones, editar sus datos, seleccionar equivalencias del catalogo, visualizar el documento y descargar un PDF con las firmas y sellos configurados.
+Aplicacion basada en el backend Express y frontend React originales. Esta etapa permite crear manualmente equiparaciones, editar sus datos, seleccionar equivalencias del catalogo, visualizar el documento y abrir la impresion desde el frontend para imprimirlo o guardarlo como PDF con las firmas y sellos configurados.
 
 ## Requisitos
 
@@ -119,9 +119,9 @@ Abre `http://localhost:5174`. Vite envia `/api` y `/uploads` al backend en `3001
 3. Elige un pensum de origen antiguo o vigente y un destino vigente distinto; el destino puede pertenecer a otra carrera. El sistema propone uno vigente de la misma carrera cuando existe. El coordinador se determina por la carrera destino y el director usa el codigo `DIRECTOR_ING`.
 4. Selecciona los cursos del catalogo y guarda. La busqueda de cursos ignora las tildes. El codigo anual se asigna automaticamente y el estado inicial es `PENDIENTE`.
 5. Haz clic en cualquier fila o en **Ver** para abrir la pagina de cursos y modificarlos. **Editar** cambia estudiante, pensums, sede, expediente y observaciones sin editar los cursos. Si cambias los pensums, los cursos anteriores se reinician y debes escoger los nuevos desde **Ver**.
-6. Haz clic en el estado de una fila para alternar entre `PENDIENTE` y `LISTO`. **Visualizar** y **PDF** usan el mismo documento; las firmas y sellos que se cargan o actualizan en **Autoridades** se leen al generarlo.
+6. Haz clic en el estado de una fila para alternar entre `PENDIENTE` y `LISTO`. **Visualizar** abre la vista previa del backend. **PDF** prepara el documento en el frontend con una sola tabla continua y abre la impresion del navegador; alli puedes elegir **Guardar como PDF**. En esa misma vista, **Word editable** descarga un `.docx` con una sola tabla de cursos que continua entre paginas y repite sus encabezados. Las firmas y sellos configurados en **Autoridades** se incorporan a ambos formatos.
 
-Los documentos extensos pueden ocupar varias paginas; la cabecera de la tabla y la numeracion se repiten. Solo se genera el documento de equiparacion, sin cartas individuales de docentes.
+Los documentos extensos pueden ocupar varias paginas; la cabecera de la misma tabla se repite al imprimir. El PDF abierto en Word depende de la conversion de Word y puede redistribuir el contenido. Para editar con certeza una sola tabla, usa **Word editable**. Solo se genera el documento de equiparacion, sin cartas individuales de docentes.
 
 ## Decisiones de datos
 
@@ -132,8 +132,8 @@ Los documentos extensos pueden ocupar varias paginas; la cabecera de la tabla y 
 - `porcentaje` y `opinion` pertenecen a `equivalencia_curso`.
 - El catalogo inicial conserva los codigos, nombres, porcentajes y opiniones del Excel. Los semestres quedan NULL porque no figuran en el archivo.
 - Las equivalencias utilizadas no se pueden editar ni eliminar desde la nueva API para evitar cambiar los porcentajes de documentos existentes. Los demas datos de catalogos, estudiantes y autoridades se consultan en vivo: esto aun no es un archivo inmutable de documentos firmados.
-- El PDF se genera al solicitarlo. `url_archivo` queda reservado; no se guardan PDFs generados en disco en esta etapa.
-- Visualizar no marca una descarga. Descargar actualiza `fecha_impresion` en cabecera y cursos. Editar limpia la fecha para indicar que la nueva version aun no fue descargada.
+- Visualizar genera el PDF del backend sin registrar impresion. El boton PDF compone el HTML en un iframe aislado y usa la impresion del navegador. `url_archivo` queda reservado; no se guardan PDFs generados en el servidor.
+- Al preparar PDF se actualiza `fecha_impresion` en cabecera y cursos, como ocurria al descargar. Editar limpia la fecha para indicar que la nueva version aun no fue impresa.
 - El estado se selecciona manualmente; no se implementan aprobaciones, envios por correo ni lectura automatica de PDF.
 - No se incluye eliminacion de equiparaciones: asi los numeros emitidos no se reutilizan.
 
@@ -146,6 +146,7 @@ Los documentos extensos pueden ocupar varias paginas; la cabecera de la tabla y 
 | POST | /api/equiparaciones | Crear con correlativo anual |
 | GET | /api/equiparaciones/:id | Cabecera y cursos |
 | PUT | /api/equiparaciones/:id | Editar sin cambiar codigo |
+| POST | /api/equiparaciones/:id/impresion | Registrar impresion y obtener datos para la hoja del frontend |
 | GET | /api/equiparaciones/:id/pdf | Vista previa del PDF |
 | GET | /api/equiparaciones/:id/pdf?download=1 | Descargar y registrar fecha |
 

@@ -71,6 +71,21 @@ router.patch('/:id/estado',wrap(async(req,res)=>{
   await service.updateEstado(Number(req.params.id),req.body.estado)
   res.json(await service.detail(req.params.id))
 }))
+router.post('/:id/impresion',wrap(async(req,res)=>{
+  const conn=await pool.getConnection()
+  try{
+    await conn.beginTransaction()
+    const [[row]]=await conn.query('SELECT id FROM equiparacion WHERE id=? FOR UPDATE',[req.params.id])
+    if(!row)throw service.fallo(404,'Equiparacion no encontrada')
+    const [[{total}]]=await conn.query('SELECT COUNT(*) AS total FROM cursos_equiparacion WHERE id_equiparacion=?',[row.id])
+    if(!total)throw service.fallo(400,'Agrega cursos antes de imprimir')
+    await conn.query('UPDATE equiparacion SET fecha_impresion=UTC_TIMESTAMP() WHERE id=?',[row.id])
+    await conn.query('UPDATE cursos_equiparacion SET fecha_impresion=UTC_TIMESTAMP() WHERE id_equiparacion=?',[row.id])
+    const documento=await service.detail(row.id,conn)
+    await conn.commit()
+    res.json(documento)
+  }catch(error){await conn.rollback();throw error}finally{conn.release()}
+}))
 router.get('/:id/pdf',wrap(async(req,res)=>{
   const conn=await pool.getConnection()
   let buffer,e

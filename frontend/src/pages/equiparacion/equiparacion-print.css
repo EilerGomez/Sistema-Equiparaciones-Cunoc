@@ -1,0 +1,40 @@
+@page{size:A4;margin:13mm 15mm}
+.eq-print-panel .eq-dialog{width:min(900px,96vw);max-height:95vh;overflow:auto}
+.eq-print-panel .eq-dialog>p{font-size:13px;padding:0 24px}
+.eq-print-preview{overflow:auto;background:#e7edf3;padding:20px}
+.eq-print-paper{box-sizing:border-box;width:210mm;min-height:297mm;padding:13mm 15mm;background:#fff;color:#111;margin:0 auto 16px;font:10pt/1.2 Cambria,Georgia,serif}
+.eq-print-paper *{box-sizing:border-box}
+.eq-print-heading{min-height:32mm}
+.eq-print-header{display:block;width:150mm;height:auto;max-height:23mm;object-fit:contain;margin:0 auto}
+.eq-print-title{width:50%;margin:2mm 0 0 auto;font:bold 10pt/1.12 Cambria,Georgia,serif;text-align:left}
+.eq-print-recipient{font:bold 11pt/1.08 Cambria,Georgia,serif;margin:2mm 0 0}
+.eq-print-greeting{font:bold 11pt/1.1 Cambria,Georgia,serif;margin:4mm 0 0}
+.eq-print-intro{font:10pt/1.17 Cambria,Georgia,serif;text-align:justify;text-indent:10mm;margin:4mm 0 3mm}
+.eq-print-table{width:100%;border-collapse:collapse;table-layout:fixed;font:10pt/1.08 'Calibri Light',Calibri,Arial,sans-serif}
+.eq-print-table th,.eq-print-table td{border:.5pt solid #333;vertical-align:middle;overflow-wrap:break-word}
+.eq-print-table th{text-align:center;font-weight:bold;padding:1mm .6mm}
+.eq-print-table thead tr:nth-child(2) th:nth-child(3),.eq-print-table tbody td:nth-child(4){font-size:8pt;white-space:nowrap}
+.eq-print-table thead tr:first-child th:nth-last-child(2){font-size:9pt}
+.eq-print-table tbody td{padding:.65mm .8mm;min-height:5.5mm}
+.eq-print-table tbody td:nth-child(1),.eq-print-table tbody td:nth-child(2),.eq-print-table tbody td:nth-child(4),.eq-print-table tbody td:nth-child(5),.eq-print-table tbody td:nth-child(7){text-align:center}
+.eq-print-table tbody td:nth-child(8){font-size:9pt}
+.eq-print-table thead{display:table-header-group}
+.eq-print-table tr{break-inside:avoid;page-break-inside:avoid}
+.eq-print-closing{break-inside:avoid;page-break-inside:avoid}
+.eq-print-closing>p{font:11pt/1.15 'Times New Roman',Times,serif;margin:2mm 0 0}
+.eq-print-motto{display:block;text-align:center;font:bold 11pt/1.15 'Calibri Light',Calibri,Arial,sans-serif;margin:3mm 0 0}
+.eq-print-signatures{display:grid;grid-template-columns:1fr 1fr;margin-top:5mm}
+.eq-print-authority{position:relative;min-height:20mm;padding-top:9mm;text-align:center;font:bold 10pt/1.08 'Calibri Light',Calibri,Arial,sans-serif;text-transform:uppercase}
+.eq-print-authority-name,.eq-print-authority-role{position:relative;z-index:2}
+.eq-print-authority-role{margin-top:1mm}
+.eq-print-firma{position:absolute;z-index:1;top:-5mm;left:15%;width:62%;height:14mm;object-fit:contain;object-position:center bottom}
+.eq-print-sello{position:absolute;z-index:3;top:4mm;right:0;width:23mm;height:23mm;object-fit:contain;opacity:.8}
+.eq-print-vobo{display:flex;align-items:center;gap:10mm;margin-top:4mm;font:bold 10pt 'Calibri Light',Calibri,Arial,sans-serif}
+.eq-print-vobo .eq-print-authority{width:78mm}
+.eq-print-copy{font:8pt/1.1 'Calibri Light',Calibri,Arial,sans-serif;margin-top:2mm}
+@media print{
+  html,body{width:auto!important;margin:0!important;padding:0!important;background:#fff!important}
+  .eq-print-preview{width:auto!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+  .eq-print-paper{width:180mm!important;min-height:0!important;padding:0!important;border:0!important;box-shadow:none!important;border-radius:0!important;margin:0!important}
+  .eq-print-final-section{break-before:page;page-break-before:always}
+}
