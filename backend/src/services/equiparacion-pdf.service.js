@@ -42,7 +42,7 @@ function generatePdf(e) {
       }
       newPage()
       const title=`Dic. Equiv. ${e.carrera_a_subfijo || 'Ing. Sistemas'} No. ${e.codigo}`
-      const rightX=left+width*0.43,rightWidth=width*0.57
+      const rightX=left+width*0.55,rightWidth=width*0.45
       const titleHeight=doc.font('CambriaBold').fontSize(10).heightOfString(title,{width:rightWidth})
       const dateY=Math.max(114,100+titleHeight+2)
       const dateLabel=`${e.sede_nombre || 'Quetzaltenango'}, ${dateText(e.fecha_impresion || new Date())}`
