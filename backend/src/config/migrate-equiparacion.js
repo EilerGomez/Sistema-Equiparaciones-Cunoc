@@ -10,7 +10,7 @@ async function main(){
     await conn.query(`CREATE DATABASE IF NOT EXISTS \`${name}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`)
     await conn.query(`USE \`${name}\``)
     await conn.query('CREATE TABLE IF NOT EXISTS schema_migrations (nombre VARCHAR(100) PRIMARY KEY, aplicado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
-    for(const file of ['001_esquema.sql','002_sistemas_2016_2025.sql','003_catalogos_equivalencias.sql']){
+    for(const file of ['001_esquema.sql','002_sistemas_2016_2025.sql','003_catalogos_equivalencias.sql','004_importacion_pdf.sql']){
       const [[done]]=await conn.query('SELECT nombre FROM schema_migrations WHERE nombre=?',[file])
       if(done){console.log('Ya aplicado:',file);continue}
       await conn.query(await fs.readFile(path.join(__dirname,'../../sql',file),'utf8'))

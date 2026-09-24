@@ -158,6 +158,8 @@ CREATE TABLE IF NOT EXISTS cursos_equiparacion (
  id_equiparacion INT UNSIGNED NOT NULL,
  id_curso_de INT UNSIGNED NULL,
  id_curso_a INT UNSIGNED NULL,
+ porcentaje DECIMAL(5,2) NULL,
+ opinion VARCHAR(50) NULL,
  fecha_impresion DATETIME NULL,
  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -167,6 +169,20 @@ CREATE TABLE IF NOT EXISTS cursos_equiparacion (
  FOREIGN KEY (id_curso_de,id_curso_a) REFERENCES equivalencia_curso(id_curso_de,id_curso_a) ON UPDATE CASCADE ON DELETE RESTRICT,
  CHECK (numero > 0)
 ) ENGINE=InnoDB;
+SET @sql = (SELECT IF(COUNT(*)=0,
+ 'ALTER TABLE cursos_equiparacion ADD COLUMN porcentaje DECIMAL(5,2) NULL AFTER id_curso_a',
+ 'SELECT 1') FROM information_schema.COLUMNS
+ WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='cursos_equiparacion' AND COLUMN_NAME='porcentaje');
+PREPARE migracion_pdf FROM @sql;
+EXECUTE migracion_pdf;
+DEALLOCATE PREPARE migracion_pdf;
+SET @sql = (SELECT IF(COUNT(*)=0,
+ 'ALTER TABLE cursos_equiparacion ADD COLUMN opinion VARCHAR(50) NULL AFTER porcentaje',
+ 'SELECT 1') FROM information_schema.COLUMNS
+ WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='cursos_equiparacion' AND COLUMN_NAME='opinion');
+PREPARE migracion_pdf FROM @sql;
+EXECUTE migracion_pdf;
+DEALLOCATE PREPARE migracion_pdf;
 INSERT IGNORE INTO roles(id,nombre) VALUES (1,'admin'),(2,'coordinador'),(3,'estudiante');
 INSERT IGNORE INTO usuarios(nombre,email,password_hash,rol_id,activo)
  SELECT 'Ana García','anagabriela_garcia@cunoc.edu.gt',

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api from '../../api/client'
 import EquiparacionPrint from './EquiparacionPrint'
+import ImportarEquiparacion from './ImportarEquiparacion'
 
 const statuses=['PENDIENTE','LISTO']
 const blank={id_estudiante:'',id_sede:'',id_pensum_de:'',id_pensum_a:'',id_autoridad_coordinador:'',id_autoridad_director:'',num_expediente:'',estado:'PENDIENTE',observaciones:'',cursos:[]}
@@ -43,6 +44,7 @@ export default function EquiparacionPage(){
   const [stateModal,setStateModal]=useState(null)
   const [preview,setPreview]=useState(null)
   const [printData,setPrintData]=useState(null)
+  const [importModal,setImportModal]=useState(false)
   const [busy,setBusy]=useState(null)
   const [returnToDetail,setReturnToDetail]=useState(null)
   const previewUrl=useRef(null)
@@ -171,8 +173,8 @@ export default function EquiparacionPage(){
   },[saving,studentModal,stateModal,returnToDetail])
 
   return <div className="eq-page">
-    <div className="eq-heading"><div><span className="eq-eyebrow">GESTION ACADEMICA / DOCUMENTOS</span><h1>Equiparacion</h1><p>Gestiona el traslado de cursos entre pensums y emite el documento academico.</p></div><button className="eq-btn primary" onClick={()=>openForm()} disabled={busy==='new'}>{busy==='new'?'Cargando...':'+ Nueva equiparacion'}</button></div>
-    <div className="eq-overview"><div><span className="eq-overview-label">ARCHIVO DE EQUIPARACIONES</span><strong>{rows.total}</strong><span>{search||filter?'resultados encontrados':'documentos registrados'}</span></div><div className="eq-overview-note"><span className="eq-dot"/><div><b>Registro manual</b><p>Selecciona al estudiante y los cursos para preparar cada documento.</p></div></div></div>
+    <div className="eq-heading"><div><span className="eq-eyebrow">GESTION ACADEMICA / DOCUMENTOS</span><h1>Equiparacion</h1><p>Gestiona el traslado de cursos entre pensums y emite el documento academico.</p></div><div className="eq-actions"><button className="eq-btn" onClick={()=>setImportModal(true)}>Importar PDF</button><button className="eq-btn primary" onClick={()=>openForm()} disabled={busy==='new'}>{busy==='new'?'Cargando...':'+ Nueva equiparacion'}</button></div></div>
+    <div className="eq-overview"><div><span className="eq-overview-label">ARCHIVO DE EQUIPARACIONES</span><strong>{rows.total}</strong><span>{search||filter?'resultados encontrados':'documentos registrados'}</span></div><div className="eq-overview-note"><span className="eq-dot"/><div><b>Registro manual o desde PDF</b><p>Revisa los datos extraidos antes de guardar el documento.</p></div></div></div>
     <section className="eq-card">
       <div className="eq-toolbar"><label className="eq-search"><span>Buscar documento</span><input placeholder="Codigo, nombre o carne..." value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}}/></label><label><span>Estado</span><select value={filter} onChange={e=>{setFilter(e.target.value);setPage(1)}}><option value="">Todos los estados</option>{statuses.map(s=><option key={s}>{s}</option>)}</select></label><button className="eq-btn" onClick={()=>setRevision(x=>x+1)}>Actualizar</button></div>
       {error&&<div className="eq-error" role="alert">{error}</div>}
@@ -222,5 +224,6 @@ export default function EquiparacionPage(){
     {stateModal&&<div className="eq-overlay eq-secondary-overlay"><section className="eq-dialog eq-state-dialog" role="dialog" aria-modal="true" aria-labelledby="status-title"><div className="eq-dialog-heading"><h2 id="status-title">Estado de {stateModal.codigo}</h2><button className="eq-btn" onClick={()=>setStateModal(null)}>Cerrar</button></div><div className="eq-state-form"><label>Selecciona el estado<select aria-label="Estado de la equiparacion" value={stateModal.estado} onChange={e=>setStateModal(s=>({...s,estado:e.target.value}))}>{statuses.map(s=><option key={s}>{s}</option>)}</select></label><button className="eq-btn primary" onClick={changeStatus} disabled={saving}>Guardar estado</button></div></section></div>}
     {preview&&<div className="eq-overlay"><section className="eq-dialog eq-preview" role="dialog" aria-modal="true" aria-label="Vista previa de equiparacion"><div className="eq-dialog-heading"><h2>Equiparacion {preview.codigo}</h2><div className="eq-actions"><button className="eq-btn primary" disabled={busy===preview.id} onClick={()=>preparePrint(preview)}>Imprimir / Guardar PDF</button><button className="eq-btn" onClick={closePreview}>Cerrar</button></div></div><p className="eq-print-hint">El botón PDF prepara la impresión desde la página.</p><iframe title={`Documento ${preview.codigo}`} src={preview.url}/></section></div>}
     {printData&&<EquiparacionPrint documento={printData} onClose={()=>setPrintData(null)}/>}
+    {importModal&&<ImportarEquiparacion onClose={()=>setImportModal(false)} onCreated={data=>{setImportModal(false);setRevision(x=>x+1);toast.success(`Equiparacion ${data.codigo} importada`);navigate(`/dashboard/equiparacion/${data.id}`)}}/>}
   </div>
 }

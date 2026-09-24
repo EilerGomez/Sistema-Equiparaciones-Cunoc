@@ -49,4 +49,18 @@ body{background:#f5f7f8;color:#22373e;font-family:var(--font-body)}button,input,
 @media(max-width:700px){.eq-document-list{padding:12px}.eq-document-card-main{grid-template-areas:"documento estado" "estudiante cursos" "recorrido recorrido";grid-template-columns:minmax(0,1fr) auto;gap:18px;padding:18px}.eq-document-route{grid-template-columns:1fr;gap:7px}.eq-document-arrow{text-align:left;transform:rotate(90deg);width:24px}.eq-document-card-footer{align-items:flex-start;flex-direction:column;padding:14px 18px}.eq-document-card-footer .eq-actions{width:100%}.eq-document-card-footer .eq-actions button{flex:1}}
 .eq-detail-header-actions{display:grid;justify-items:end;gap:16px;align-self:end}.eq-detail-page .eq-heading .eq-detail-header-actions .eq-badge{margin:0}
 .eq-print-hint{margin:0;padding:7px 20px;font-size:11px;color:#60757a;background:#f4f7f7}
+.eq-import-dialog{width:min(1000px,100%)}
+.eq-import-upload{padding:22px 30px;border-bottom:1px solid #e6edef;display:grid;gap:12px}
+.eq-import-upload label{font-size:12px;font-weight:700;color:#315057}
+.eq-import-upload>div{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.eq-import-upload input{flex:1;min-width:190px;font-size:12px}
+.eq-import-upload small{font-size:11px;color:#718086}
+.eq-import-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.eq-import-summary>div{border:1px solid #e1e9e7;background:#f7faf9;border-radius:8px;padding:15px;display:grid;gap:6px}
+.eq-import-summary small{font-size:10px;color:#718086;text-transform:uppercase;letter-spacing:.7px}
+.eq-import-summary strong{font-size:17px;color:#183c43}
+.eq-import-summary span{font-size:11px;color:#58747a}
+.eq-import-courses{max-height:370px}
+.eq-import-dialog .eq-notice p+p{margin-top:5px}
+@media(max-width:700px){.eq-import-summary{grid-template-columns:1fr}.eq-import-upload{padding:20px}}
 @media(max-width:780px){.eq-detail-page .eq-heading{align-items:flex-start;flex-direction:column}.eq-detail-header-actions{justify-items:start;align-self:stretch}.eq-detail-header-actions .eq-actions{width:100%}.eq-detail-header-actions .eq-actions button{flex:1}}

@@ -107,7 +107,7 @@ async function updateMetadata(id,body){
     if((expediente!=null&&(typeof expediente!=='string'||expediente.length>80))||(observaciones!=null&&(typeof observaciones!=='string'||observaciones.length>1000)))throw fallo(400,'Expediente u observaciones invalidos')
     const {de,a,autoridades}=await resolvePensums(conn,origen,destino)
     const changed=Number(origen)!==Number(old.id_pensum_de)||Number(destino)!==Number(old.id_pensum_a)
-    await conn.query(`UPDATE equiparacion SET id_estudiante=?,id_sede=?,id_pensum_de=?,id_pensum_a=?,id_carrera_de=?,id_carrera_a=?,id_carrera_equivalencia=?,id_institucion_de=?,id_institucion_a=?,id_autoridad_coordinador=?,id_autoridad_director=?,num_expediente=?,observaciones=?,estado=IF(?,'PENDIENTE',estado),fecha_impresion=NULL,url_archivo=NULL WHERE id=?`,[estudiante,sede,origen,destino,de.id_carrera,a.id_carrera,a.id_carrera,de.id_institucion,a.id_institucion,autoridades.coordinador,autoridades.director,expediente||null,observaciones||null,changed,id])
+    await conn.query(`UPDATE equiparacion SET id_estudiante=?,id_sede=?,id_pensum_de=?,id_pensum_a=?,id_carrera_de=?,id_carrera_a=?,id_carrera_equivalencia=?,id_institucion_de=?,id_institucion_a=?,id_autoridad_coordinador=?,id_autoridad_director=?,num_expediente=?,observaciones=?,estado=IF(?,'PENDIENTE',estado),fecha_impresion=IF(url_archivo IS NULL,NULL,fecha_impresion) WHERE id=?`,[estudiante,sede,origen,destino,de.id_carrera,a.id_carrera,a.id_carrera,de.id_institucion,a.id_institucion,autoridades.coordinador,autoridades.director,expediente||null,observaciones||null,changed,id])
     if(changed)await conn.query('DELETE FROM cursos_equiparacion WHERE id_equiparacion=?',[id])
     await conn.commit()
     return {cursosReiniciados:changed}
@@ -123,9 +123,14 @@ async function updateCourses(id,cursos){
     if(!old)throw fallo(404,'Equiparacion no encontrada')
     const {de,a}=await resolvePensums(conn,old.id_pensum_de,old.id_pensum_a)
     await checkCourses(conn,de,a,cursos)
+    const [existing]=await conn.query('SELECT id_curso_de,id_curso_a,porcentaje,opinion FROM cursos_equiparacion WHERE id_equiparacion=?',[id])
+    const overrides=new Map(existing.map(row=>[`${row.id_curso_de}:${row.id_curso_a}`,row]))
     await conn.query('DELETE FROM cursos_equiparacion WHERE id_equiparacion=?',[id])
-    await conn.query('INSERT INTO cursos_equiparacion(numero,id_equiparacion,id_curso_de,id_curso_a) VALUES ?',[cursos.map((c,i)=>[i+1,id,Number(c.id_curso_de),Number(c.id_curso_a)])])
-    await conn.query('UPDATE equiparacion SET fecha_impresion=NULL,url_archivo=NULL WHERE id=?',[id])
+    await conn.query('INSERT INTO cursos_equiparacion(numero,id_equiparacion,id_curso_de,id_curso_a,porcentaje,opinion) VALUES ?',[cursos.map((c,i)=>{
+      const old=overrides.get(`${Number(c.id_curso_de)}:${Number(c.id_curso_a)}`)
+      return [i+1,id,Number(c.id_curso_de),Number(c.id_curso_a),old?.porcentaje??null,old?.opinion??null]
+    })])
+    await conn.query('UPDATE equiparacion SET fecha_impresion=IF(url_archivo IS NULL,NULL,fecha_impresion) WHERE id=?',[id])
     await conn.commit()
   }catch(err){await conn.rollback();throw err}finally{conn.release()}
 }
@@ -163,10 +168,11 @@ const detailSql = `SELECT e.*,s.nombre_completo AS estudiante_nombre,s.carnet AS
 async function detail(id, conn = pool) {
   const [[row]] = await conn.query(detailSql+' WHERE e.id=?',[id])
   if (!row) throw fallo(404,'Equiparacion no encontrada')
-  const [cursos] = await conn.query(`SELECT ce.*,ec.porcentaje,ec.opinion,d.codigo AS curso_de_codigo,d.nombre AS curso_de_nombre,a.codigo AS curso_a_codigo,a.nombre AS curso_a_nombre
+  const [cursos] = await conn.query(`SELECT ce.numero,ce.id_equiparacion,ce.id_curso_de,ce.id_curso_a,ce.fecha_impresion,ce.creado_en,ce.actualizado_en,
+    COALESCE(ce.porcentaje,ec.porcentaje) AS porcentaje,COALESCE(ce.opinion,ec.opinion) AS opinion,d.codigo AS curso_de_codigo,d.nombre AS curso_de_nombre,a.codigo AS curso_a_codigo,a.nombre AS curso_a_nombre
     FROM cursos_equiparacion ce JOIN equivalencia_curso ec ON ec.id_curso_de=ce.id_curso_de AND ec.id_curso_a=ce.id_curso_a
     JOIN curso d ON d.id=ce.id_curso_de JOIN curso a ON a.id=ce.id_curso_a WHERE ce.id_equiparacion=? ORDER BY ce.numero`,[id])
   return {...row,cursos}
 }
 
-module.exports = {save,updateMetadata,updateCourses,updateEstado,detail,nextNumber,anioActual,validate,validateCourses,estados,fallo}
+module.exports = {save,updateMetadata,updateCourses,updateEstado,detail,nextNumber,anioActual,validate,validateCourses,resolvePensums,estados,fallo}

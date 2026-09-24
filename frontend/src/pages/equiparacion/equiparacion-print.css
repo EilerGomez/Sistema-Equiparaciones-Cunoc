@@ -6,10 +6,13 @@
 .eq-print-paper *{box-sizing:border-box}
 .eq-print-heading{min-height:32mm}
 .eq-print-header{display:block;width:150mm;height:auto;max-height:23mm;object-fit:contain;margin:0 auto}
-.eq-print-title{width:50%;margin:2mm 0 0 auto;font:bold 10pt/1.12 Cambria,Georgia,serif;text-align:left}
+.eq-print-title,.eq-print-date{width:100%;margin:0;font:bold 10pt/1.12 Cambria,Georgia,serif;text-align:right;letter-spacing:normal;word-spacing:normal}
+.eq-print-title{margin-top:2mm}
 .eq-print-recipient{font:bold 11pt/1.08 Cambria,Georgia,serif;margin:2mm 0 0}
+.eq-print-recipient p{margin:0;text-align:left;letter-spacing:normal;word-spacing:normal}
 .eq-print-greeting{font:bold 11pt/1.1 Cambria,Georgia,serif;margin:4mm 0 0}
-.eq-print-intro{font:10pt/1.17 Cambria,Georgia,serif;text-align:justify;text-indent:10mm;margin:4mm 0 3mm}
+.eq-print-intro{font:10pt/1.17 Cambria,Georgia,serif;text-align:left;text-indent:0;letter-spacing:normal;word-spacing:normal;margin:4mm 0 3mm}
+.eq-print-intro strong{overflow-wrap:anywhere}
 .eq-print-table{width:100%;border-collapse:collapse;table-layout:fixed;font:10pt/1.08 'Calibri Light',Calibri,Arial,sans-serif}
 .eq-print-table th,.eq-print-table td{border:.5pt solid #333;vertical-align:middle;overflow-wrap:break-word}
 .eq-print-table th{text-align:center;font-weight:bold;padding:1mm .6mm}
@@ -26,9 +29,10 @@
 .eq-print-signatures{display:grid;grid-template-columns:1fr 1fr;margin-top:5mm}
 .eq-print-authority{position:relative;min-height:20mm;padding-top:9mm;text-align:center;font:bold 10pt/1.08 'Calibri Light',Calibri,Arial,sans-serif;text-transform:uppercase}
 .eq-print-authority-name,.eq-print-authority-role{position:relative;z-index:2}
+.eq-print-authority-name{font-family:Calibri,Arial,sans-serif;font-weight:700}
 .eq-print-authority-role{margin-top:1mm}
 .eq-print-firma{position:absolute;z-index:1;top:-5mm;left:15%;width:62%;height:14mm;object-fit:contain;object-position:center bottom}
-.eq-print-sello{position:absolute;z-index:3;top:4mm;right:0;width:23mm;height:23mm;object-fit:contain;opacity:.8}
+.eq-print-sello{position:absolute;z-index:1;top:4mm;right:0;width:23mm;height:23mm;object-fit:contain;opacity:.8}
 .eq-print-vobo{display:flex;align-items:center;gap:10mm;margin-top:4mm;font:bold 10pt 'Calibri Light',Calibri,Arial,sans-serif}
 .eq-print-vobo .eq-print-authority{width:78mm}
 .eq-print-copy{font:8pt/1.1 'Calibri Light',Calibri,Arial,sans-serif;margin-top:2mm}

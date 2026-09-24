@@ -12,6 +12,10 @@ function asset(value){
   return typeof value==='string'&&value.startsWith('/uploads/')?value:null
 }
 
+function fraseContinua(value){
+  return String(value??'').trim().replace(/\s+/g,'\u00a0')
+}
+
 function Autoridad({documento,role}){
   const firma=asset(documento[`${role}_firma`])
   const sello=asset(documento[`${role}_sello`])
@@ -46,10 +50,10 @@ function Paginas({documento}){
   const title=`Dic. Equiv. ${documento.carrera_a_subfijo || 'Ing. Sistemas'} No. ${documento.codigo}`
   const date=`${documento.sede_nombre || 'Quetzaltenango'}, ${fechaGuatemala(documento.fecha_impresion)}`
   return <div className="eq-print-paper">
-    <div className="eq-print-heading"><img className="eq-print-header" src="/images/encabezado-equiparacion.png" alt=""/><div className="eq-print-title"><div>{title}</div><div>{date}</div></div></div>
-    <p className="eq-print-recipient"><strong>Señores:<br/>Comisión Académica<br/>Centro Universitario de Occidente<br/>Edificio.</strong></p>
-    <p className="eq-print-greeting"><strong>Estimados Señores:</strong></p>
-    <p className="eq-print-intro">Envío el expediente de él (la) Estudiante: <strong>{documento.estudiante_nombre}</strong>, Carné No. <strong>{documento.estudiante_carnet}</strong>, y Registro Académico No. <strong>{documento.registro_academico}</strong>, estudiante de la carrera de {documento.carrera_de}, quien solicita <strong>EQUIVALENCIA DE CURSOS</strong> para su validez Académica en la Carrera de {documento.carrera_a} Pensum {documento.pensum_a_anio} {documento.institucion_a_codigo || 'CUNOC'}, emitiéndose <strong>DICTAMEN FAVORABLE</strong> a los cursos que a continuación se detallan:</p>
+    <div className="eq-print-heading"><img className="eq-print-header" src="/images/encabezado-equiparacion.png" alt=""/><p className="eq-print-title">{fraseContinua(title)}</p><p className="eq-print-date">{fraseContinua(date)}</p></div>
+    <div className="eq-print-recipient"><p>Señores:</p><p>{fraseContinua('Comisión Académica')}</p><p>{fraseContinua('Centro Universitario de Occidente')}</p><p>Edificio.</p></div>
+    <p className="eq-print-greeting"><strong>{fraseContinua('Estimados Señores:')}</strong></p>
+    <p className="eq-print-intro">Envío el expediente de él (la) Estudiante: <strong>{fraseContinua(documento.estudiante_nombre)}</strong>, Carné No. <strong>{documento.estudiante_carnet}</strong>, y Registro Académico No. <strong>{documento.registro_academico}</strong>, estudiante de la carrera de {documento.carrera_de}, quien solicita <strong>{fraseContinua('EQUIVALENCIA DE CURSOS')}</strong> para su validez Académica en la Carrera de {documento.carrera_a} Pensum {documento.pensum_a_anio} {documento.institucion_a_codigo || 'CUNOC'}, emitiéndose <strong>{fraseContinua('DICTAMEN FAVORABLE')}</strong> a los cursos que a continuación se detallan:</p>
     <TablaCursos documento={documento} cursos={documento.cursos || []}/>
     <Cierre documento={documento}/>
   </div>

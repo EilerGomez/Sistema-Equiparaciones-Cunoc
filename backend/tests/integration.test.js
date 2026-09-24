@@ -16,7 +16,7 @@ test('MySQL: DDL, catalogos, permisos, CRUD, PDF, transacciones y correlativos',
  try{
   await conn.query(`CREATE DATABASE \`${name}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`)
   await conn.query(`USE \`${name}\``)
-  for(const file of ['001_esquema.sql','002_sistemas_2016_2025.sql','003_catalogos_equivalencias.sql'])await conn.query(await fs.readFile(path.join(__dirname,'../sql',file),'utf8'))
+  for(const file of ['001_esquema.sql','002_sistemas_2016_2025.sql','003_catalogos_equivalencias.sql','004_importacion_pdf.sql'])await conn.query(await fs.readFile(path.join(__dirname,'../sql',file),'utf8'))
   pool=require('../src/config/db').pool
   const service=require('../src/services/equiparacion.service')
   const {hashPassword}=require('../src/utils/password')

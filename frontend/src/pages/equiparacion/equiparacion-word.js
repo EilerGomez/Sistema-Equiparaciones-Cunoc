@@ -1,4 +1,4 @@
-import { AlignmentType, BorderStyle, Document, ImageRun, Packer, Paragraph, Table, TableCell, TableLayoutType, TableRow, TextRun, WidthType } from 'docx'
+import { AlignmentType, BorderStyle, Document, HorizontalPositionRelativeFrom, ImageRun, Packer, Paragraph, TabStopType, Table, TableCell, TableLayoutType, TableRow, TextRun, TextWrappingType, VerticalPositionRelativeFrom, WidthType } from 'docx'
 
 const TWIPS=10206
 const proportions=[5,9,23,4,9,23,12,15]
@@ -9,8 +9,13 @@ const borders={top:line,bottom:line,left:line,right:line,insideHorizontal:line,i
 const run=(text,{bold=false,font='Cambria',size=20}={})=>new TextRun({text:String(text??''),bold,font,size})
 const lines=(text,options={})=>String(text??'').split('\n').map((part,index)=>new TextRun({text:part,break:index?1:undefined,font:options.font||'Calibri Light',size:options.size||20,bold:!!options.bold}))
 const para=(children,options={})=>new Paragraph({children:Array.isArray(children)?children:[run(children)],spacing:{before:0,after:80},...options})
-const cell=(content,options={})=>new TableCell({children:[para(lines(content,{bold:options.bold}),{alignment:options.center?AlignmentType.CENTER:AlignmentType.LEFT,spacing:{before:0,after:0}})],width:{size:options.width||widths[0],type:WidthType.DXA},columnSpan:options.span||1,margins:{top:45,bottom:45,left:55,right:55}})
+const cell=(content,options={})=>new TableCell({children:[para(lines(content,{bold:options.bold,size:options.size}),{alignment:options.center?AlignmentType.CENTER:AlignmentType.LEFT,spacing:{before:0,after:0}})],width:{size:options.width||widths[0],type:WidthType.DXA},columnSpan:options.span||1,margins:{top:45,bottom:45,left:options.narrow?5:55,right:options.narrow?5:55}})
 const image=(data,type,width,height)=>new ImageRun({type,data,transformation:{width,height}})
+const backgroundImage=(source,width,height,x,y)=>new ImageRun({type:source.type,data:source.data,transformation:{width,height},floating:{
+  horizontalPosition:{relative:HorizontalPositionRelativeFrom.MARGIN,offset:x*9525},
+  verticalPosition:{relative:VerticalPositionRelativeFrom.PARAGRAPH,offset:y*9525},
+  behindDocument:true,allowOverlap:true,wrap:{type:TextWrappingType.NONE}
+}})
 
 function fechaGuatemala(value){
   const parts=Object.fromEntries(new Intl.DateTimeFormat('es-GT',{day:'2-digit',month:'long',year:'numeric',timeZone:'America/Guatemala'}).formatToParts(value?new Date(value):new Date()).map(part=>[part.type,part.value]))
@@ -26,26 +31,30 @@ function tabla(documento){
     cell('Porcentaje',{bold:true,center:true,width:widths[6]}),cell('Opinión',{bold:true,center:true,width:widths[7]})
   ]})
   const subencabezado=new TableRow({tableHeader:true,cantSplit:true,children:[
-    cell('',{width:widths[0]}),cell('Código',{bold:true,center:true,width:widths[1]}),cell('Nombre del curso',{bold:true,center:true,width:widths[2]}),cell('Por',{bold:true,center:true,width:widths[3]}),
+    cell('',{width:widths[0]}),cell('Código',{bold:true,center:true,width:widths[1]}),cell('Nombre del curso',{bold:true,center:true,width:widths[2]}),cell('Por',{bold:true,center:true,width:widths[3],narrow:true,size:16}),
     cell('Código',{bold:true,center:true,width:widths[4]}),cell('Nombre del curso',{bold:true,center:true,width:widths[5]}),cell('',{width:widths[6]}),cell('',{width:widths[7]})
   ]})
   const filas=(documento.cursos||[]).map(curso=>new TableRow({cantSplit:true,children:[
     cell(curso.numero,{center:true,width:widths[0]}),cell(curso.curso_de_codigo,{center:true,width:widths[1]}),cell(curso.curso_de_nombre,{width:widths[2]}),
-    cell('Por',{center:true,width:widths[3]}),cell(curso.curso_a_codigo,{center:true,width:widths[4]}),cell(curso.curso_a_nombre,{width:widths[5]}),
+    cell('Por',{center:true,width:widths[3],narrow:true,size:16}),cell(curso.curso_a_codigo,{center:true,width:widths[4]}),cell(curso.curso_a_nombre,{width:widths[5]}),
     cell(`${Number(curso.porcentaje)}%`,{center:true,width:widths[6]}),cell(curso.opinion,{center:true,width:widths[7]})
   ]}))
   return new Table({rows:[encabezado,subencabezado,...filas],width:{size:TWIPS,type:WidthType.DXA},columnWidths:widths,layout:TableLayoutType.FIXED,borders,margins:{top:45,bottom:45,left:55,right:55}})
 }
 
-function autoridad(documento,role,imagenes){
-  const firma=imagenes[`${role}Firma`],sello=imagenes[`${role}Sello`]
-  const nombre=`${documento[`${role}_subfijo`] || ''} ${documento[`${role}_nombre`] || ''}`.trim().toUpperCase()
-  const alineacion=role==='coordinador'?AlignmentType.RIGHT:AlignmentType.CENTER
-  const result=[]
-  if(firma||sello)result.push(para([...(firma?[image(firma.data,firma.type,160,58)]:[]),...(sello?[image(sello.data,sello.type,74,74)]:[])],{alignment:alineacion,spacing:{before:100,after:0},keepNext:true}))
-  result.push(para([run(nombre,{bold:true,font:'Calibri Light'})],{alignment:alineacion,spacing:{before:0,after:0},keepNext:true}))
-  result.push(para([run(documento[`${role}_cargo`]?.toUpperCase(),{bold:true,font:'Calibri Light'})],{alignment:alineacion,spacing:{before:0,after:90}}))
-  return result
+function firmas(documento,imagenes){
+  const nombre=role=>`${documento[`${role}_subfijo`] || ''} ${documento[`${role}_nombre`] || ''}`.trim().toUpperCase()
+  const figura=(key,width,height,x,y)=>imagenes[key]?[backgroundImage(imagenes[key],width,height,x,y)]:[]
+  const tabs=[{type:TabStopType.LEFT,position:5100}]
+  return [
+    para([run('Vo. Bo.:',{bold:true,font:'Calibri Light'})],{spacing:{before:180,after:0},keepNext:true}),
+    para([
+      ...figura('directorFirma',160,58,70,-10),...figura('directorSello',74,74,240,-10),
+      ...figura('coordinadorFirma',160,58,370,-10),...figura('coordinadorSello',74,74,535,-10),
+      run(nombre('director'),{bold:true,font:'Calibri',size:18}),run('\t'+nombre('coordinador'),{bold:true,font:'Calibri',size:18})
+    ],{tabs,spacing:{before:900,after:0},keepNext:true}),
+    para([run(documento.director_cargo?.toUpperCase(),{bold:true,font:'Calibri Light',size:18}),run('\t'+documento.coordinador_cargo?.toUpperCase(),{bold:true,font:'Calibri Light',size:18})],{tabs,spacing:{before:0,after:70}})
+  ]
 }
 
 export async function crearWordEquiparacion(documento,imagenes={}){
@@ -61,15 +70,13 @@ export async function crearWordEquiparacion(documento,imagenes={}){
     run(', y Registro Académico No. '),run(documento.registro_academico,{bold:true}),run(`, estudiante de la carrera de ${documento.carrera_de}, quien solicita `),
     run('EQUIVALENCIA DE CURSOS',{bold:true}),run(` para su validez Académica en la Carrera de ${documento.carrera_a} Pensum ${documento.pensum_a_anio} ${documento.institucion_a_codigo || 'CUNOC'}, emitiéndose `),
     run('DICTAMEN FAVORABLE',{bold:true}),run(' a los cursos que a continuación se detallan:')
-  ],{alignment:AlignmentType.JUSTIFIED,indent:{firstLine:570},spacing:{before:0,after:140}}))
+  ],{alignment:AlignmentType.LEFT,spacing:{before:0,after:140}}))
   contenido.push(tabla(documento))
   contenido.push(para([run('Sin otro particular, me es grato suscribirme, atentamente,',{font:'Times New Roman',size:22})],{spacing:{before:150,after:180},keepNext:true}))
-  contenido.push(para([run('“ID Y ENSEÑAD A TODOS”',{font:'Calibri Light',size:22,bold:true})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:350},keepNext:true}))
-  contenido.push(...autoridad(documento,'coordinador',imagenes))
-  contenido.push(para([run('Vo. Bo.:',{font:'Calibri Light',bold:true})],{spacing:{before:260,after:0},keepNext:true}))
-  contenido.push(...autoridad(documento,'director',imagenes))
+  contenido.push(para([run('“ID Y ENSEÑAD A TODOS”',{font:'Calibri Light',size:22,bold:true})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:120},keepNext:true}))
+  contenido.push(...firmas(documento,imagenes))
   contenido.push(para(lines(`cc. Archivo\nEAPA/JFRS/agg\nExp. No. ${documento.num_expediente || documento.codigo}`,{font:'Calibri Light',size:16}),{spacing:{before:180,after:0}}))
-  const doc=new Document({sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:737,bottom:850,left:850,right:850}}},children:contenido}]})
+  const doc=new Document({sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:600,bottom:600,left:850,right:850}}},children:contenido}]})
   return Packer.toBlob(doc)
 }
 

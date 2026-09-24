@@ -1,6 +1,6 @@
-# Sistema de Equiparacion - primera etapa
+# Sistema de Equiparacion
 
-Aplicacion basada en el backend Express y frontend React originales. Esta etapa permite crear manualmente equiparaciones, editar sus datos, seleccionar equivalencias del catalogo, visualizar el documento y abrir la impresion desde el frontend para imprimirlo o guardarlo como PDF con las firmas y sellos configurados.
+Aplicacion basada en el backend Express y frontend React originales. Permite crear equiparaciones manualmente o importar un PDF de equivalencias, revisar los datos extraidos antes de guardarlos, visualizar el documento e imprimirlo con las firmas y sellos configurados.
 
 ## Requisitos
 
@@ -8,8 +8,15 @@ Aplicacion basada en el backend Express y frontend React originales. Esta etapa 
 - MySQL 8.0.16 o superior, en ejecucion.
 - El usuario de MySQL necesita permisos sobre la nueva base `equiparacion_db`. Para crearla automaticamente tambien necesita `CREATE DATABASE`.
 - Puerto 3001 libre.
+- Python 3 y PyMuPDF para la importacion de PDF digital con texto seleccionable.
 
-No se necesita Python para este flujo. Los lectores PDF y modulos anteriores se conservan como codigo, sin estar conectados al nuevo menu ni a las rutas de equiparacion.
+Instala el lector del PDF en Windows desde PowerShell:
+
+```powershell
+python -m pip install PyMuPDF==1.24.14
+```
+
+Si el ejecutable es `py`, usa `py -m pip install PyMuPDF==1.24.14` y configura `PYTHON_BIN=py` en `backend/.env`.
 
 ## 1. Instalar
 
@@ -50,12 +57,13 @@ Este comando crea la base nueva y aplica:
 - `backend/sql/001_esquema.sql`: tablas compartidas y tablas de equiparacion.
 - `backend/sql/002_sistemas_2016_2025.sql`: 104 cursos y 52 pares del Excel.
 - `backend/sql/003_catalogos_equivalencias.sql`: datos originales de las cinco carreras, diez pensums, seis autoridades, instituciones, profesiones, ciclos y catalogos complementarios. Asocia cada carrera a su coordinador y migra el codigo de Sistemas `2016-58` a `2016-56`.
+- `backend/sql/004_importacion_pdf.sql`: agrega porcentaje y opinion propios a cada curso importado; conserva las equiparaciones existentes.
 
 Tambien se entrega `backend/sql/DDL_EQUIPARACION.sql` para ejecutar todo directamente en MySQL Workbench. Usa el migrador o el SQL completo; no es necesario utilizar ambos. El DDL es para una base nueva, no para modificar la base original. Su bloque final `GRANT` requiere ejecutarlo con una cuenta MySQL administradora y que ya exista `user_project_equivalencias`@`localhost`.
 
 El migrador recuerda los scripts aplicados y permite ejecutar la nueva migracion en una instalacion previa sin borrar documentos. Los inserts del catalogo no reemplazan cursos ya existentes. Si usas un nombre diferente, debe empezar por `equiparacion`; cambia `DB_NAME` y usa el migrador. El SQL completo usa explicitamente `equiparacion_db`.
 
-El DDL original aporta datos de los cinco pensums antiguos y los cinco vigentes. Las 52 equivalencias de cursos suministradas corresponden solo a Ciencias y Sistemas; para generar documentos de las otras carreras debes cargar sus cursos y equivalencias propios.
+El DDL original aporta datos de los cinco pensums antiguos y los cinco vigentes. Las 52 equivalencias de cursos iniciales corresponden solo a Ciencias y Sistemas. Al importar un PDF, los cursos y relaciones del documento se agregan a los pensums seleccionados, sin cambiar los porcentajes de otros documentos.
 
 ## 4. Conservar las cuentas del sistema anterior
 
@@ -121,6 +129,15 @@ Abre `http://localhost:5174`. Vite envia `/api` y `/uploads` al backend en `3001
 5. Haz clic en cualquier fila o en **Ver** para abrir la pagina de cursos y modificarlos. **Editar** cambia estudiante, pensums, sede, expediente y observaciones sin editar los cursos. Si cambias los pensums, los cursos anteriores se reinician y debes escoger los nuevos desde **Ver**.
 6. Haz clic en el estado de una fila para alternar entre `PENDIENTE` y `LISTO`. **Visualizar** abre la vista previa del backend. **PDF** prepara el documento en el frontend con una sola tabla continua y abre la impresion del navegador; alli puedes elegir **Guardar como PDF**. En esa misma vista, **Word editable** descarga un `.docx` con una sola tabla de cursos que continua entre paginas y repite sus encabezados. Las firmas y sellos configurados en **Autoridades** se incorporan a ambos formatos.
 
+## Importar un PDF de equivalencias
+
+1. En el listado, pulsa **Importar PDF**, selecciona el PDF y pulsa **Leer PDF**.
+2. Revisa en la vista previa el numero, fecha, sede, estudiante, expediente, pensums y todos los cursos. El lector ignora ceros iniciales en codigos numericos: `028` se guarda como `28`.
+3. Ajusta el estudiante, sede o pensums si hace falta y pulsa **Confirmar e importar**. Si no existe el estudiante por carnet o registro academico, se crea al confirmar. Si ambos identificadores corresponden a personas distintas, la importacion se detiene para evitar duplicados.
+4. Se conserva el correlativo y anio del PDF, la fecha de su encabezado y el PDF original. El estado inicial siempre es `PENDIENTE`. El coordinador se obtiene de la carrera destino y el director usa `DIRECTOR_ING`.
+
+El PDF debe contener texto seleccionable y una tabla como la del ejemplo. Un PDF escaneado sin texto se rechaza con un mensaje; se puede registrar manualmente. El limite es 12 MB y 30 paginas. La vista previa no guarda datos: estudiante, cursos y equiparacion se insertan juntos al confirmar. Si ya existe el numero de equiparacion, no se crea una segunda copia. Para una base ya creada, ejecuta `npm run migrate --prefix backend` antes de importar; si administras la base con Workbench, ejecuta el DDL completo actualizado o solo `backend/sql/004_importacion_pdf.sql`.
+
 Los documentos extensos pueden ocupar varias paginas; la cabecera de la misma tabla se repite al imprimir. El PDF abierto en Word depende de la conversion de Word y puede redistribuir el contenido. Para editar con certeza una sola tabla, usa **Word editable**. Solo se genera el documento de equiparacion, sin cartas individuales de docentes.
 
 ## Decisiones de datos
@@ -128,13 +145,12 @@ Los documentos extensos pueden ocupar varias paginas; la cabecera de la misma ta
 - `equiparacion.id` mantiene su autoincremento global.
 - `correlativo_equiparacion` mantiene un contador por anio. La transaccion bloquea el contador y genera `1-2026`, `2-2026`, ..., `1-2027` usando la fecha de Guatemala. No se usa `MAX(id)+1` ni se reinicia la clave primaria.
 - `codigo` es una columna calculada, unica; no se puede cambiar desde el formulario.
-- `cursos_equiparacion` contiene numero, equiparacion, ambos cursos y fechas. No contiene docente, porcentaje ni opinion.
-- `porcentaje` y `opinion` pertenecen a `equivalencia_curso`.
+- `cursos_equiparacion` conserva porcentaje y opinion del PDF por documento. Los registros manuales usan los valores del catalogo `equivalencia_curso`.
 - El catalogo inicial conserva los codigos, nombres, porcentajes y opiniones del Excel. Los semestres quedan NULL porque no figuran en el archivo.
 - Las equivalencias utilizadas no se pueden editar ni eliminar desde la nueva API para evitar cambiar los porcentajes de documentos existentes. Los demas datos de catalogos, estudiantes y autoridades se consultan en vivo: esto aun no es un archivo inmutable de documentos firmados.
-- Visualizar genera el PDF del backend sin registrar impresion. El boton PDF compone el HTML en un iframe aislado y usa la impresion del navegador. `url_archivo` queda reservado; no se guardan PDFs generados en el servidor.
-- Al preparar PDF se actualiza `fecha_impresion` en cabecera y cursos, como ocurria al descargar. Editar limpia la fecha para indicar que la nueva version aun no fue impresa.
-- El estado se selecciona manualmente; no se implementan aprobaciones, envios por correo ni lectura automatica de PDF.
+- Visualizar genera el PDF del backend sin registrar impresion. El boton PDF compone el HTML en un iframe aislado y usa la impresion del navegador. `url_archivo` conserva el PDF original cuando procede de una importacion.
+- En documentos manuales, preparar PDF actualiza `fecha_impresion`. En los importados se conserva la fecha del PDF de origen.
+- El estado se selecciona manualmente; no se implementan aprobaciones ni envios por correo.
 - No se incluye eliminacion de equiparaciones: asi los numeros emitidos no se reutilizan.
 
 ## Rutas nuevas
@@ -144,6 +160,8 @@ Los documentos extensos pueden ocupar varias paginas; la cabecera de la misma ta
 | GET | /api/equiparaciones | Listado con busqueda, estado y paginas de 20 |
 | GET | /api/equiparaciones/catalogos | Datos del formulario y equivalencias por pensum |
 | POST | /api/equiparaciones | Crear con correlativo anual |
+| POST | /api/equiparaciones/importar/preview | Extraer y revisar datos del PDF sin guardar |
+| POST | /api/equiparaciones/importar | Confirmar el PDF, estudiante, catalogo y equiparacion |
 | GET | /api/equiparaciones/:id | Cabecera y cursos |
 | PUT | /api/equiparaciones/:id | Editar sin cambiar codigo |
 | POST | /api/equiparaciones/:id/impresion | Registrar impresion y obtener datos para la hoja del frontend |
