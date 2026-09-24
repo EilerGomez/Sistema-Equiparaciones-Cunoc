@@ -1,8 +1,12 @@
 const {test}=require('node:test')
 const assert=require('node:assert/strict')
 const PDFDocument=require('pdfkit')
+const fs=require('node:fs/promises')
+const os=require('node:os')
+const path=require('node:path')
 const {readPdf}=require('../src/services/equiparacion-import.reader')
-const {code,preview}=require('../src/services/equiparacion-import.service')
+const {code,preview,saveImported}=require('../src/services/equiparacion-import.service')
+const {anioActual}=require('../src/services/equiparacion.service')
 
 function samplePdf(){
   return new Promise(resolve=>{
@@ -52,13 +56,60 @@ test('la vista previa elige el pensum exacto y no crea al estudiante',async()=>{
       {id:25,anio:2025,vigencia:1,id_carrera:4,carrera:'Ingeniería Mecánica',subfijo:'Ing. Mecánica',institucion:'CUNOC'}
     ]]
     if(sql.includes('FROM cede'))return [[{id:3,nombre:'Quetzaltenango'}]]
-    if(sql.includes('FROM autoridades_carrera'))return [[{id_carrera:4,id_autoridad_coordinador:6}]]
+    if(sql.includes('FROM autoridades_carrera'))return [[{id_carrera:4,id_autoridad_coordinador:6,nombre:'Juan Coordinador'}]]
     if(sql.includes("codigo='DIRECTOR_ING'"))return [[{id:7,nombre:'Director'}]]
+    if(sql.includes('FROM equivalencia_curso ec'))return [[{curso_de_codigo:'028',curso_a_codigo:'3003',porcentaje:'90.00',opinion:'APROBADO'}]]
     return [[]]
   }}
   const result=await preview(parsed,db)
   assert.deepEqual(result.seleccion,{id_pensum_de:12,id_pensum_a:25,id_sede:3})
   assert.equal(result.estudiante_existente,null)
+  assert.equal(result.catalogos.coordinadores[0].nombre,'Juan Coordinador')
   assert.deepEqual(result.advertencias,[])
+  assert.equal(result.extraido.cursos[0].porcentaje,90)
+  assert.equal(result.extraido.cursos[0].opinion,'APROBADO')
+  assert.equal(result.extraido.cursos[0].equivalencia_existente,true)
+  assert.equal(result.extraido.cursos[1].porcentaje,100)
+  assert.equal(result.extraido.cursos[1].opinion,'EQUIVALENTE')
+  assert.equal(result.extraido.cursos[1].equivalencia_existente,false)
   assert.ok(calls.every(sql=>/^SELECT /.test(sql)))
+})
+
+test('la importacion asigna correlativo propio y conserva el dictamen original',async()=>{
+  const parsed=await readPdf(await samplePdf())
+  parsed.codigo='126-2024'
+  parsed.anio=2024
+  const directory=await fs.mkdtemp(path.join(os.tmpdir(),'equiparacion-import-test-'))
+  const previous=process.env.UPLOAD_ROOT
+  process.env.UPLOAD_ROOT=directory
+  let inserted,selectedCourses,committed=false
+  const courseIds={28:1,3003:2,72:3,3007:4}
+  const conn={
+    beginTransaction:async()=>{},commit:async()=>{committed=true},rollback:async()=>{},release:()=>{},
+    query:async(sql,args=[])=>{
+      if(sql.startsWith('SELECT p.id,p.id_carrera,p.vigencia'))return [[{id:12,id_carrera:4,id_institucion:1,vigencia:0},{id:25,id_carrera:4,id_institucion:1,vigencia:1}]]
+      if(sql.includes('FROM autoridades_carrera ac'))return [[{coordinador:6,director:7}]]
+      if(sql.startsWith('SELECT p.id,p.anio,c.descripcion'))return [[{id:12,anio:2012,carrera:'Ingeniería Mecánica',subfijo:'Ing. Mecánica',institucion:'CUNOC'},{id:25,anio:2025,carrera:'Ingeniería Mecánica',subfijo:'Ing. Mecánica',institucion:'CUNOC'}]]
+      if(sql.startsWith('SELECT id,nombre FROM cede'))return [[{id:3,nombre:'Quetzaltenango'}]]
+      if(sql.startsWith('SELECT id,carnet,registro_academico'))return [[{id:9,carnet:parsed.estudiante.carnet,registro_academico:parsed.estudiante.registro_academico}]]
+      if(sql.startsWith('SELECT id,codigo,nombre FROM curso'))return [[{id:courseIds[args[0]],codigo:args[0]}]]
+      if(sql.startsWith('SELECT LAST_INSERT_ID()'))return [[{numero:1}]]
+      if(sql.startsWith('INSERT INTO equiparacion(')){inserted=args;return [{insertId:51}]}
+      if(sql.startsWith('INSERT INTO cursos_equiparacion(')){selectedCourses=args;return [{}]}
+      return [{}]
+    }
+  }
+  try{
+    const id=await saveImported(parsed,{id_pensum_de:12,id_pensum_a:25,id_sede:3},Buffer.from('%PDF-mock'),{getConnection:async()=>conn})
+    assert.equal(id,51)
+    assert.equal(inserted[1],anioActual())
+    assert.equal(inserted[2],1)
+    assert.equal(inserted[3],'126-2024')
+    assert.equal(selectedCourses[0][0][1],51)
+    assert.equal(committed,true)
+  }finally{
+    if(previous===undefined)delete process.env.UPLOAD_ROOT
+    else process.env.UPLOAD_ROOT=previous
+    await fs.rm(directory,{recursive:true,force:true})
+  }
 })

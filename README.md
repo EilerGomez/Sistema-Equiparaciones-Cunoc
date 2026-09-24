@@ -57,7 +57,9 @@ Este comando crea la base nueva y aplica:
 - `backend/sql/001_esquema.sql`: tablas compartidas y tablas de equiparacion.
 - `backend/sql/002_sistemas_2016_2025.sql`: 104 cursos y 52 pares del Excel.
 - `backend/sql/003_catalogos_equivalencias.sql`: datos originales de las cinco carreras, diez pensums, seis autoridades, instituciones, profesiones, ciclos y catalogos complementarios. Asocia cada carrera a su coordinador y migra el codigo de Sistemas `2016-58` a `2016-56`.
-- `backend/sql/004_importacion_pdf.sql`: agrega porcentaje y opinion propios a cada curso importado; conserva las equiparaciones existentes.
+- `backend/sql/004_importacion_pdf.sql`: agrega columnas opcionales para valores propios de un documento.
+- `backend/sql/005_valores_catalogo_importados.sql`: hace que los PDF importados anteriormente utilicen porcentaje y opinion del catalogo.
+- `backend/sql/006_codigo_dictamen_origen.sql`: guarda el codigo del dictamen original y renumera las equiparaciones importadas con la secuencia propia del sistema.
 
 Tambien se entrega `backend/sql/DDL_EQUIPARACION.sql` para ejecutar todo directamente en MySQL Workbench. Usa el migrador o el SQL completo; no es necesario utilizar ambos. El DDL es para una base nueva, no para modificar la base original. Su bloque final `GRANT` requiere ejecutarlo con una cuenta MySQL administradora y que ya exista `user_project_equivalencias`@`localhost`.
 
@@ -132,11 +134,11 @@ Abre `http://localhost:5174`. Vite envia `/api` y `/uploads` al backend en `3001
 ## Importar un PDF de equivalencias
 
 1. En el listado, pulsa **Importar PDF**, selecciona el PDF y pulsa **Leer PDF**.
-2. Revisa en la vista previa el numero, fecha, sede, estudiante, expediente, pensums y todos los cursos. El lector ignora ceros iniciales en codigos numericos: `028` se guarda como `28`.
+2. Revisa en la vista previa el numero del dictamen de origen, fecha, sede, estudiante, expediente, pensums y todos los cursos. El lector ignora ceros iniciales en codigos numericos: `028` se guarda como `28`.
 3. Ajusta el estudiante, sede o pensums si hace falta y pulsa **Confirmar e importar**. Si no existe el estudiante por carnet o registro academico, se crea al confirmar. Si ambos identificadores corresponden a personas distintas, la importacion se detiene para evitar duplicados.
-4. Se conserva el correlativo y anio del PDF, la fecha de su encabezado y el PDF original. El estado inicial siempre es `PENDIENTE`. El coordinador se obtiene de la carrera destino y el director usa `DIRECTOR_ING`.
+4. La nueva equiparacion usa el siguiente correlativo anual propio del sistema segun la fecha de Guatemala. El numero del PDF se guarda en `codigo_dictamen_origen` solo para trazabilidad, junto a la fecha de su encabezado y al PDF original. El estado inicial siempre es `PENDIENTE`. El coordinador se obtiene de la carrera destino y el director usa `DIRECTOR_ING`.
 
-El PDF debe contener texto seleccionable y una tabla como la del ejemplo. Un PDF escaneado sin texto se rechaza con un mensaje; se puede registrar manualmente. El limite es 12 MB y 30 paginas. La vista previa no guarda datos: estudiante, cursos y equiparacion se insertan juntos al confirmar. Si ya existe el numero de equiparacion, no se crea una segunda copia. Para una base ya creada, ejecuta `npm run migrate --prefix backend` antes de importar; si administras la base con Workbench, ejecuta el DDL completo actualizado o solo `backend/sql/004_importacion_pdf.sql`.
+El PDF debe contener texto seleccionable y una tabla como la del ejemplo. Un PDF escaneado sin texto se rechaza con un mensaje; se puede registrar manualmente. El limite es 12 MB y 30 paginas. La vista previa no guarda datos: estudiante, cursos y equiparacion se insertan juntos al confirmar. El numero del dictamen no bloquea la asignacion del codigo propio. Para una base ya creada, ejecuta `npm run migrate --prefix backend` antes de importar; si administras la base con Workbench, ejecuta el DDL completo actualizado o los scripts `004_importacion_pdf.sql`, `005_valores_catalogo_importados.sql` y `006_codigo_dictamen_origen.sql` en ese orden. La migracion 006 renumera los PDF importados con la version anterior y conserva su codigo original.
 
 Los documentos extensos pueden ocupar varias paginas; la cabecera de la misma tabla se repite al imprimir. El PDF abierto en Word depende de la conversion de Word y puede redistribuir el contenido. Para editar con certeza una sola tabla, usa **Word editable**. Solo se genera el documento de equiparacion, sin cartas individuales de docentes.
 
@@ -145,7 +147,8 @@ Los documentos extensos pueden ocupar varias paginas; la cabecera de la misma ta
 - `equiparacion.id` mantiene su autoincremento global.
 - `correlativo_equiparacion` mantiene un contador por anio. La transaccion bloquea el contador y genera `1-2026`, `2-2026`, ..., `1-2027` usando la fecha de Guatemala. No se usa `MAX(id)+1` ni se reinicia la clave primaria.
 - `codigo` es una columna calculada, unica; no se puede cambiar desde el formulario.
-- `cursos_equiparacion` conserva porcentaje y opinion del PDF por documento. Los registros manuales usan los valores del catalogo `equivalencia_curso`.
+- `codigo_dictamen_origen` guarda la referencia del PDF y nunca participa en el correlativo anual. Es visible en el listado y en el detalle.
+- Al importar, `cursos_equiparacion` usa porcentaje y opinion de `equivalencia_curso`; los valores impresos en el PDF no los reemplazan. Si el par es nuevo, se registra en el catalogo con 100% y EQUIVALENTE. La migracion 005 corrige los PDF importados con la version anterior sin alterar las equivalencias del catalogo.
 - El catalogo inicial conserva los codigos, nombres, porcentajes y opiniones del Excel. Los semestres quedan NULL porque no figuran en el archivo.
 - Las equivalencias utilizadas no se pueden editar ni eliminar desde la nueva API para evitar cambiar los porcentajes de documentos existentes. Los demas datos de catalogos, estudiantes y autoridades se consultan en vivo: esto aun no es un archivo inmutable de documentos firmados.
 - Visualizar genera el PDF del backend sin registrar impresion. El boton PDF compone el HTML en un iframe aislado y usa la impresion del navegador. `url_archivo` conserva el PDF original cuando procede de una importacion.

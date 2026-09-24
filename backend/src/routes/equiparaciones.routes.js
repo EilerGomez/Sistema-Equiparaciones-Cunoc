@@ -25,10 +25,10 @@ router.get('/',wrap(async(req,res)=>{
   const page=Math.max(1,Number.parseInt(req.query.page,10)||1)
   const search=String(req.query.search || '').slice(0,150)
   const estado=String(req.query.estado || '')
-  const params=[`%${search}%`,`%${search}%`,`%${search}%`,estado,estado]
-  const where='WHERE (e.codigo LIKE ? OR s.nombre_completo LIKE ? OR s.carnet LIKE ?) AND (?="" OR e.estado=?)'
+  const params=[`%${search}%`,`%${search}%`,`%${search}%`,`%${search}%`,estado,estado]
+  const where='WHERE (e.codigo LIKE ? OR e.codigo_dictamen_origen LIKE ? OR s.nombre_completo LIKE ? OR s.carnet LIKE ?) AND (?="" OR e.estado=?)'
   const [[{total}]]=await pool.query(`SELECT COUNT(*) total FROM equiparacion e JOIN estudiante s ON s.id=e.id_estudiante ${where}`,params)
-  const [items]=await pool.query(`SELECT e.id,e.codigo,e.anio,e.correlativo,e.estado,e.creado_en,s.nombre_completo AS estudiante_nombre,s.carnet,
+  const [items]=await pool.query(`SELECT e.id,e.codigo,e.codigo_dictamen_origen,e.anio,e.correlativo,e.estado,e.creado_en,s.nombre_completo AS estudiante_nombre,s.carnet,
     pd.codigo AS pensum_de_codigo,pd.anio AS pensum_de_anio,cd.descripcion AS carrera_de,
     pa.codigo AS pensum_a_codigo,pa.anio AS pensum_a_anio,ca.descripcion AS carrera_a,
     (SELECT COUNT(*) FROM cursos_equiparacion c WHERE c.id_equiparacion=e.id) AS total_cursos

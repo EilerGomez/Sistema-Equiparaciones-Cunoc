@@ -181,7 +181,7 @@ export default function EquiparacionPage(){
       <div className="eq-document-list">
         {loading?<div className="eq-empty">Cargando equiparaciones...</div>:rows.items.length?rows.items.map(row=><article key={row.id} className="eq-document-card" role="link" tabIndex={0} aria-label={`Ver equiparacion ${row.codigo}`} onClick={()=>navigate(`/dashboard/equiparacion/${row.id}`)} onKeyDown={e=>{if((e.key==='Enter'||e.key===' ')&&e.target===e.currentTarget){e.preventDefault();navigate(`/dashboard/equiparacion/${row.id}`)}}}>
           <div className="eq-document-card-main">
-            <div className="eq-document-identity"><span className="eq-document-label">DOCUMENTO</span><strong className="eq-code">{row.codigo}</strong><small>Creado {date(row.creado_en)}</small></div>
+            <div className="eq-document-identity"><span className="eq-document-label">DOCUMENTO</span><strong className="eq-code">{row.codigo}</strong><small>Creado {date(row.creado_en)}</small>{row.codigo_dictamen_origen&&<small>Dictamen de origen: {row.codigo_dictamen_origen}</small>}</div>
             <div className="eq-document-student"><span className="eq-document-label">ESTUDIANTE</span><strong>{row.estudiante_nombre}</strong><small>Carne {row.carnet}</small></div>
             <div className="eq-document-route" aria-label="Carrera y pensum de origen y destino">
               <div><span className="eq-document-label">ORIGEN</span><strong>{row.carrera_de || 'Carrera sin registrar'}</strong><small>Pensum {row.pensum_de_anio || '—'}{row.pensum_de_codigo?` · ${row.pensum_de_codigo}`:''}</small></div>

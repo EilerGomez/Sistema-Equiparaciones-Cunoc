@@ -13,7 +13,7 @@ async function catalogs(db=pool){
   const [[pensums],[sedes],[coordinadores],[directores]]=await Promise.all([
     db.query('SELECT p.id,p.anio,p.vigencia,p.id_carrera,c.descripcion AS carrera,c.subfijo,i.codigo AS institucion FROM pensum p JOIN carreras c ON c.id=p.id_carrera JOIN instituciones i ON i.id=c.id_institucion ORDER BY c.descripcion,p.anio'),
     db.query('SELECT id,nombre FROM cede ORDER BY nombre'),
-    db.query('SELECT id_carrera,id_autoridad_coordinador FROM autoridades_carrera'),
+    db.query('SELECT ac.id_carrera,ac.id_autoridad_coordinador,a.nombre FROM autoridades_carrera ac JOIN autoridades a ON a.id=ac.id_autoridad_coordinador'),
     db.query("SELECT id,nombre FROM autoridades WHERE codigo='DIRECTOR_ING' ORDER BY id LIMIT 1")
   ])
   return {pensums,sedes,coordinadores,director:directores[0]||null}
@@ -39,9 +39,19 @@ async function preview(parsed,db=pool){
   if(students.length>1||students.length===1&&(students[0].carnet!==parsed.estudiante.carnet||students[0].registro_academico!==parsed.estudiante.registro_academico))warnings.push('El carnet y el registro academico coinciden con estudiantes diferentes o con datos distintos; revisa el catalogo.')
   if(destination&&!available.coordinadores.some(c=>Number(c.id_carrera)===Number(destination.id_carrera)))warnings.push('Falta configurar el coordinador de la carrera destino.')
   if(!available.director)warnings.push('Falta configurar DIRECTOR_ING.')
-  const [[existing]]=await db.query('SELECT id FROM equiparacion WHERE anio=? AND correlativo=?',[parsed.anio,parsed.correlativo])
-  if(existing)warnings.push(`La equiparacion ${parsed.codigo} ya existe.`)
-  return {extraido:parsed,catalogos:available,seleccion:{id_pensum_de:origin?.id||'',id_pensum_a:destination?.id||'',id_sede:sede?.id||''},estudiante_existente:students.length===1?students[0]:null,advertencias:warnings}
+  const sourceCodes=parsed.cursos.map(row=>code(row.curso_de_codigo))
+  const targetCodes=parsed.cursos.map(row=>code(row.curso_a_codigo))
+  const [equivalences]=await db.query(`SELECT d.codigo AS curso_de_codigo,a.codigo AS curso_a_codigo,ec.porcentaje,ec.opinion
+    FROM equivalencia_curso ec JOIN curso d ON d.id=ec.id_curso_de JOIN curso a ON a.id=ec.id_curso_a
+    WHERE (d.codigo IN (?) OR (d.codigo REGEXP '^[0-9]+$' AND CAST(d.codigo AS UNSIGNED) IN (?)))
+    AND (a.codigo IN (?) OR (a.codigo REGEXP '^[0-9]+$' AND CAST(a.codigo AS UNSIGNED) IN (?)))`,
+    [sourceCodes,sourceCodes.filter(value=>/^\d+$/.test(value)).map(Number).filter(Number.isSafeInteger).concat(-1),targetCodes,targetCodes.filter(value=>/^\d+$/.test(value)).map(Number).filter(Number.isSafeInteger).concat(-1)])
+  const catalogValues=new Map(equivalences.map(row=>[`${code(row.curso_de_codigo)}:${code(row.curso_a_codigo)}`,row]))
+  const cursos=parsed.cursos.map(row=>{
+    const match=catalogValues.get(`${code(row.curso_de_codigo)}:${code(row.curso_a_codigo)}`)
+    return {...row,porcentaje:match?Number(match.porcentaje):100,opinion:match?.opinion||'EQUIVALENTE',equivalencia_existente:!!match}
+  })
+  return {extraido:{...parsed,cursos},catalogos:available,seleccion:{id_pensum_de:origin?.id||'',id_pensum_a:destination?.id||'',id_sede:sede?.id||''},estudiante_existente:students.length===1?students[0]:null,advertencias:warnings}
 }
 
 async function findOrCreateCourse(conn,codigo,nombre){
@@ -54,7 +64,7 @@ async function findOrCreateCourse(conn,codigo,nombre){
   return result.insertId
 }
 
-async function saveImported(parsed,selection,buffer){
+async function saveImported(parsed,selection,buffer,db=pool){
   if(!parsed||!Array.isArray(parsed.cursos)||!parsed.cursos.length||parsed.cursos.length>200)throw fail(422,'El PDF no contiene cursos validos')
   if(!number(selection.id_pensum_de)||!number(selection.id_pensum_a)||!number(selection.id_sede))throw fail(422,'Selecciona los dos pensums y la sede')
   const student=selection.estudiante||parsed.estudiante
@@ -69,10 +79,8 @@ async function saveImported(parsed,selection,buffer){
   await fs.writeFile(target,buffer,{flag:'wx'})
   let conn
   try{
-    conn=await pool.getConnection()
+    conn=await db.getConnection()
     await conn.beginTransaction()
-    const [[existing]]=await conn.query('SELECT id FROM equiparacion WHERE anio=? AND correlativo=? FOR UPDATE',[parsed.anio,parsed.correlativo])
-    if(existing)throw fail(409,`La equiparacion ${parsed.codigo} ya existe`)
     const {de,a,autoridades}=await equiparacion.resolvePensums(conn,selection.id_pensum_de,selection.id_pensum_a)
     const [selected]=await conn.query('SELECT p.id,p.anio,c.descripcion AS carrera,c.subfijo,i.codigo AS institucion FROM pensum p JOIN carreras c ON c.id=p.id_carrera JOIN instituciones i ON i.id=c.id_institucion WHERE p.id IN (?,?)',[de.id,a.id])
     for(const [item,extracted] of [[de,parsed.origen],[a,parsed.destino]]){
@@ -94,15 +102,15 @@ async function saveImported(parsed,selection,buffer){
       const pair=`${source}:${targetId}`
       if(seen.has(pair))throw fail(422,'El PDF contiene una equivalencia duplicada')
       seen.add(pair)
-      if(!Number.isFinite(row.porcentaje)||row.porcentaje<0||row.porcentaje>100||!row.opinion||row.opinion.length>50)throw fail(422,'Porcentaje u opinion invalida en el PDF')
       await conn.query('INSERT IGNORE INTO pensum_curso(id_curso,id_pensum,semestre) VALUES (?,?,NULL),(?,?,NULL)',[source,de.id,targetId,a.id])
-      await conn.query('INSERT IGNORE INTO equivalencia_curso(id_curso_de,id_curso_a,porcentaje,opinion) VALUES (?,?,?,?)',[source,targetId,row.porcentaje,row.opinion])
-      pairs.push([row.numero,source,targetId,row.porcentaje,row.opinion])
+      await conn.query("INSERT IGNORE INTO equivalencia_curso(id_curso_de,id_curso_a,porcentaje,opinion) VALUES (?,?,100.00,'EQUIVALENTE')",[source,targetId])
+      pairs.push([row.numero,source,targetId])
     }
-    await conn.query('INSERT INTO correlativo_equiparacion(anio,ultimo_numero) VALUES (?,?) ON DUPLICATE KEY UPDATE ultimo_numero=GREATEST(ultimo_numero,VALUES(ultimo_numero))',[parsed.anio,parsed.correlativo])
-    const [result]=await conn.query(`INSERT INTO equiparacion(id_carrera_equivalencia,anio,correlativo,id_sede,fecha_impresion,id_estudiante,id_carrera_de,id_pensum_de,id_institucion_de,id_carrera_a,id_pensum_a,id_institucion_a,id_autoridad_coordinador,id_autoridad_director,num_expediente,url_archivo,estado)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'PENDIENTE')`,[a.id_carrera,parsed.anio,parsed.correlativo,sede.id,`${parsed.fecha_impresion} 12:00:00`,studentId,de.id_carrera,de.id,de.id_institucion,a.id_carrera,a.id,a.id_institucion,autoridades.coordinador,autoridades.director,expediente||null,`/uploads/equiparaciones/${filename}`])
-    await conn.query('INSERT INTO cursos_equiparacion(numero,id_equiparacion,id_curso_de,id_curso_a,porcentaje,opinion) VALUES ?',[pairs.map(row=>[row[0],result.insertId,...row.slice(1)])])
+    const anio=equiparacion.anioActual()
+    const correlativo=await equiparacion.nextNumber(conn,anio)
+    const [result]=await conn.query(`INSERT INTO equiparacion(id_carrera_equivalencia,anio,correlativo,codigo_dictamen_origen,id_sede,fecha_impresion,id_estudiante,id_carrera_de,id_pensum_de,id_institucion_de,id_carrera_a,id_pensum_a,id_institucion_a,id_autoridad_coordinador,id_autoridad_director,num_expediente,url_archivo,estado)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'PENDIENTE')`,[a.id_carrera,anio,correlativo,parsed.codigo,sede.id,`${parsed.fecha_impresion} 12:00:00`,studentId,de.id_carrera,de.id,de.id_institucion,a.id_carrera,a.id,a.id_institucion,autoridades.coordinador,autoridades.director,expediente||null,`/uploads/equiparaciones/${filename}`])
+    await conn.query('INSERT INTO cursos_equiparacion(numero,id_equiparacion,id_curso_de,id_curso_a) VALUES ?',[pairs.map(row=>[row[0],result.insertId,...row.slice(1)])])
     await conn.commit()
     return result.insertId
   }catch(error){if(conn)await conn.rollback().catch(()=>{});await fs.unlink(target).catch(()=>{});throw error}finally{conn?.release()}

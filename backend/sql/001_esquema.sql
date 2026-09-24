@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS equiparacion (
  anio SMALLINT UNSIGNED NOT NULL,
  correlativo INT UNSIGNED NOT NULL,
  codigo VARCHAR(30) GENERATED ALWAYS AS (CONCAT(correlativo,'-',anio)) STORED,
+ codigo_dictamen_origen VARCHAR(50) NULL,
  id_sede INT UNSIGNED NULL,
  fecha_impresion DATETIME NULL,
  prov_ryca VARCHAR(20) NULL,
