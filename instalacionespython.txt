@@ -1,0 +1,3 @@
+python --version
+python -m pip install PyMuPDF==1.24.14
+python -c "import fitz; print('Lector PDF listo')"

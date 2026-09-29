@@ -51,7 +51,9 @@ PYTHON_BIN=./venv/bin/python
 ## Si la ruta relativa no funciona, usar la ruta absoluta:
 PYTHON_BIN=/ruta/completa/del/proyecto/venv/bin/python
 ## En windows:
+python -m venv venv 
 .\venv\Scripts\python.exe -m pip install -r requirements.txt
+.\venv\Scripts\python.exe -c "import fitz, xlrd, openpyxl; print('Dependencias OK')"
 ruta:
 PYTHON_BIN=.\\venv\\Scripts\\python.exe
 verificacion:

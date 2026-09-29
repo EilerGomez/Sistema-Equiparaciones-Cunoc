@@ -8,15 +8,15 @@ Aplicacion basada en el backend Express y frontend React originales. Permite cre
 - MySQL 8.0.16 o superior, en ejecucion.
 - El usuario de MySQL necesita permisos sobre la nueva base `equiparacion_db`. Para crearla automaticamente tambien necesita `CREATE DATABASE`.
 - Puerto 3001 libre.
-- Python 3 y PyMuPDF para la importacion de PDF digital con texto seleccionable.
+- Python 3 y PyMuPDF para la importacion de PDF digital con texto seleccionable; `xlrd` y `openpyxl` para la carga de equivalencias desde Excel.
 
 Instala el lector del PDF en Windows desde PowerShell:
 
 ```powershell
-python -m pip install PyMuPDF==1.24.14
+python -m pip install -r backend/requirements.txt
 ```
 
-Si el ejecutable es `py`, usa `py -m pip install PyMuPDF==1.24.14` y configura `PYTHON_BIN=py` en `backend/.env`.
+Si el ejecutable es `py`, usa `py -m pip install -r backend/requirements.txt` y configura `PYTHON_BIN=py` en `backend/.env`.
 
 ## 1. Instalar
 
@@ -66,6 +66,8 @@ Tambien se entrega `backend/sql/DDL_EQUIPARACION.sql` para ejecutar todo directa
 El migrador recuerda los scripts aplicados y permite ejecutar la nueva migracion en una instalacion previa sin borrar documentos. Los inserts del catalogo no reemplazan cursos ya existentes. Si usas un nombre diferente, debe empezar por `equiparacion`; cambia `DB_NAME` y usa el migrador. El SQL completo usa explicitamente `equiparacion_db`.
 
 El DDL original aporta datos de los cinco pensums antiguos y los cinco vigentes. Las 52 equivalencias de cursos iniciales corresponden solo a Ciencias y Sistemas. Al importar un PDF, los cursos y relaciones del documento se agregan a los pensums seleccionados, sin cambiar los porcentajes de otros documentos.
+
+En **Equivalencias de cursos → Importar equivalencias desde Excel**, selecciona una carrera y sube un `.xls` o `.xlsx` con el formato de la hoja de Sistemas: encabezados `Pensum AÑO`, columnas de código/nombre de origen y destino, porcentaje y opinión. Los dos años deben tener un único pensum registrado en la carrera. El encabezado de cada lado debe indicar esa carrera. La carga agrega cursos faltantes, asocia cada curso a su pensum y actualiza los nombres, porcentajes y opiniones que hayan cambiado. Al terminar se muestran los contadores de cursos y equivalencias nuevos, modificados y sin cambios. Toda la carga es una transacción: un error deja los datos como estaban. No requiere volver a correr el DDL.
 
 ## 4. Conservar las cuentas del sistema anterior
 

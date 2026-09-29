@@ -2,8 +2,17 @@ const router=require('express').Router()
 const {pool}=require('../../config/db')
 const {authorize}=require('../../middlewares/auth.middleware')
 const {fallo}=require('../../services/equiparacion.service')
+const multer=require('multer')
+const {readExcel,importExcel}=require('../../services/equivalencias-excel.service')
 const wrap=fn=>async(req,res,next)=>{try{await fn(req,res)}catch(e){next(e)}}
 router.use(authorize('admin','coordinador'))
+const excelUpload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024,files:1},fileFilter:(_req,file,done)=>done(null,/\.xlsx?$/i.test(file.originalname))})
+router.post('/importar-excel',(req,res,next)=>excelUpload.single('archivo')(req,res,error=>error?next(fallo(error.code==='LIMIT_FILE_SIZE'?413:400,error.code==='LIMIT_FILE_SIZE'?'El Excel supera 5 MB':'Adjunta un único archivo Excel')):next()),wrap(async(req,res)=>{
+  if(!req.file)throw fallo(400,'Adjunta un archivo Excel .xls o .xlsx')
+  if(!Number.isSafeInteger(Number(req.body.id_carrera))||Number(req.body.id_carrera)<1)throw fallo(400,'Selecciona una carrera')
+  const parsed=await readExcel(req.file.buffer)
+  res.json(await importExcel(parsed,req.body.id_carrera))
+}))
 router.get('/',wrap(async(_req,res)=>{
   const [rows]=await pool.query(`SELECT ec.*,d.codigo AS curso_de_codigo,d.nombre AS curso_de_nombre,a.codigo AS curso_a_codigo,a.nombre AS curso_a_nombre,
     EXISTS(SELECT 1 FROM cursos_equiparacion ce WHERE ce.id_curso_de=ec.id_curso_de AND ce.id_curso_a=ec.id_curso_a) AS utilizada
