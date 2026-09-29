@@ -108,6 +108,27 @@ Abre `http://localhost:3001`.
 
 La misma direccion sirve la interfaz y `/api`. El backend comprueba MySQL antes de escuchar. El PDF usa `backend/public/images/encabezado-equiparacion.png`, extraido del Word de referencia; puedes sustituir esa imagen por la definitiva con el mismo nombre. El compilador conserva `public/images` al reconstruir el frontend. Para detenerlo: `Ctrl+C`. Al reiniciar la computadora, enciende MySQL y ejecuta `npm start` desde esta carpeta.
 
+### Lanzador con botones para Windows
+
+El archivo `backend/launcher.py` permite **Encender programa** y **Apagar sistema**. Se coloca junto a `backend/package.json` y ejecuta directamente `node src/app.js`, el mismo servidor que `npm start --prefix backend`. Espera a que `/api/health` responda antes de abrir `http://127.0.0.1:3001`. El boton de apagar detiene el proceso que encendio el lanzador y comprueba que libere el puerto. Si el puerto pertenece a otro programa, informa el conflicto sin cerrarlo. Al cerrar la ventana tambien detiene su proceso. Los errores de inicio se guardan en `backend/logs/launcher.log`.
+
+Antes de utilizarlo, inicia MySQL, configura `backend/.env`, instala Node.js y las dependencias (`npm run instalar` desde la raiz). El ZIP ya incluye el frontend compilado. Para ejecutarlo sin convertirlo a `.exe`, desde `backend`:
+
+```powershell
+.\venv\Scripts\python.exe .\launcher.py
+```
+
+Para crear el ejecutable **en Windows**, desde `backend`:
+
+```powershell
+.\venv\Scripts\python.exe -m pip install pyinstaller
+.\venv\Scripts\python.exe -m PyInstaller --onefile --windowed --name SistemaEquiparacion --icon .\launcher.ico .\launcher.py
+Copy-Item .\dist\SistemaEquiparacion.exe .\SistemaEquiparacion.exe
+.\SistemaEquiparacion.exe
+```
+
+El archivo `.exe` debe permanecer en `backend`, junto a `package.json`, `src`, `public`, `node_modules` y `.env`. El icono `backend/launcher.ico` esta incluido. El `.exe` empaqueta solo el lanzador: Node.js y el entorno Python de la importacion de PDF/Excel siguen siendo necesarios en la maquina donde se ejecuta el backend. Si arrancas el servidor manualmente con npm, detenlo desde esa misma terminal antes de usar el lanzador.
+
 ## Modo desarrollo
 
 Terminal 1, desde la raiz:
